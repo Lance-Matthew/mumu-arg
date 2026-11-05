@@ -57,7 +57,7 @@ export default function SchoolHeader() {
                 Campus Map
               </Link>
               <Link 
-                href="/about" 
+                href="/locations/about" 
                 onClick={() => setIsOpen(false)}
                 className="px-4 py-2 font-mono text-sm font-bold text-[#211f17] hover:bg-[#ffe680] transition-colors"
               >

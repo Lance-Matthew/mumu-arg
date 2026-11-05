@@ -21,7 +21,7 @@ const plexMono = IBM_Plex_Mono({
 const extrude = Array.from({ length: 18 }, (_, i) => `${((i + 1) * 0.0161).toFixed(4)}em ${((i + 1) * 0.0161).toFixed(4)}em 0 #000`).join(", ");
 
 /* ==========================================
-   ASSET PATHS (change these if yours differ)
+   ASSET PATHS
    ========================================== */
 const IMG = "/images/map";
 const ASSETS = {
@@ -41,9 +41,6 @@ const ASSETS = {
 };
 
 const LIBRARY_ROUTE = "/locations/library";
-
-// Buttons stay locked until the tutorial reaches its final "your turn" step.
-// Set to false if you want them clickable the whole time.
 const LOCK_BUTTONS_DURING_TUTORIAL = true;
 
 /* ==========================================
@@ -51,10 +48,9 @@ const LOCK_BUTTONS_DURING_TUTORIAL = true;
    ========================================== */
 type Step = { img: string; ms: number | null; hand?: boolean; fiarce?: boolean; glitch?: boolean };
 
-// ms: null = hold until the person acts
 const INTRO: Step[] = [
   { img: ASSETS.aaliyah1, ms: 1000 },
-  { img: ASSETS.aaliyah2, ms: 2500 },
+  { img: ASSETS.aaliyah2, ms: 2300 },
   { img: ASSETS.aaliyah3, ms: 3000 },
   { img: ASSETS.aaliyah4, ms: 2000 },
   { img: ASSETS.aaliyah2, ms: 2500, hand: true },
@@ -65,29 +61,23 @@ const INTRO: Step[] = [
 ];
 
 const GLITCH_MS = 150;
+const SCARY_HOLD_MS = 650;
 const SCARY: Step[] = [
-  { img: ASSETS.sad1, ms: 1000 },
-  { img: ASSETS.scary1, ms: GLITCH_MS, glitch: true },
+  { img: ASSETS.sad1, ms: 2000 },
+  { img: ASSETS.scary1, ms: SCARY_HOLD_MS, glitch: true },
   { img: ASSETS.sad2, ms: 2000 },
-  { img: ASSETS.scary1, ms: GLITCH_MS, glitch: true },
+  { img: ASSETS.scary1, ms: SCARY_HOLD_MS, glitch: true },
   { img: ASSETS.sad3, ms: 3000 },
-  { img: ASSETS.scary1, ms: GLITCH_MS, glitch: true },
+  { img: ASSETS.scary1, ms: SCARY_HOLD_MS, glitch: true },
 ];
 
-// Every Aaliyah frame is rendered once and toggled, so swapping never flickers
 const FRAMES = [
-  ASSETS.aaliyah1,
-  ASSETS.aaliyah2,
-  ASSETS.aaliyah3,
-  ASSETS.aaliyah4,
-  ASSETS.sad1,
-  ASSETS.sad2,
-  ASSETS.sad3,
-  ASSETS.scary1,
+  ASSETS.aaliyah1, ASSETS.aaliyah2, ASSETS.aaliyah3, ASSETS.aaliyah4,
+  ASSETS.sad1, ASSETS.sad2, ASSETS.sad3, ASSETS.scary1,
 ];
 
 /* ==========================================
-   HANDHELD BUTTONS (positions in cqw = % of handheld width)
+   HANDHELD BUTTONS
    ========================================== */
 const BTN_W = 19;
 const BTN_H = 6.5;
@@ -100,57 +90,11 @@ const LOCATIONS = [
 ];
 const LIBRARY = LOCATIONS[0];
 
-// Hand sits so its fingertip lands on the Library button. Tweak to taste.
 const HAND_W = 12;
 const HAND_LEFT = LIBRARY.left + 8;
 const HAND_TOP = LIBRARY.top + 2;
 
-/* ==========================================
-   STATIC NOISE OVERLAY
-   ========================================== */
-function StaticNoise({ onClick }: { onClick: () => void }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const W = 320;
-    const H = 180;
-    canvas.width = W;
-    canvas.height = H;
-    const frame = ctx.createImageData(W, H);
-    let raf = 0;
-    const draw = () => {
-      const d = frame.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const v = Math.random() * 255;
-        d[i] = d[i + 1] = d[i + 2] = v;
-        d[i + 3] = 255;
-      }
-      ctx.putImageData(frame, 0, 0);
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  return (
-    <div className="fixed inset-0 z-[100] cursor-pointer" onClick={onClick}>
-      <canvas ref={ref} className="h-full w-full" style={{ imageRendering: "pixelated" }} />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{ background: "repeating-linear-gradient(to bottom, rgba(0,0,0,0.35) 0 2px, transparent 2px 4px)" }}
-      />
-    </div>
-  );
-}
-
-/* ==========================================
-   PAGE
-   ========================================== */
-type Phase = "intro" | "scary" | "static" | "video";
+type Phase = "intro" | "scary" | "empty" | "video";
 
 export default function MapPage() {
   const router = useRouter();
@@ -164,7 +108,6 @@ export default function MapPage() {
   const tutorialRef = useRef<HTMLAudioElement | null>(null);
   const scaryRef = useRef<HTMLAudioElement | null>(null);
 
-  // Audio: tries to autoplay on visit. If the browser blocks it, wait for a tap.
   useEffect(() => {
     let cancelled = false;
     const tutorial = new Audio(ASSETS.tutorialAudio);
@@ -173,14 +116,7 @@ export default function MapPage() {
     tutorialRef.current = tutorial;
     scaryRef.current = scary;
 
-    tutorial
-      .play()
-      .then(() => {
-        if (!cancelled) setStarted(true);
-      })
-      .catch(() => {
-        if (!cancelled) setNeedsTap(true);
-      });
+    tutorial.play().then(() => { if (!cancelled) setStarted(true); }).catch(() => { if (!cancelled) setNeedsTap(true); });
 
     return () => {
       cancelled = true;
@@ -189,7 +125,6 @@ export default function MapPage() {
     };
   }, [runId]);
 
-  // Timeline runner for both the intro and the scary sequence
   useEffect(() => {
     if (!started) return;
     const list = phase === "intro" ? INTRO : phase === "scary" ? SCARY : null;
@@ -199,12 +134,18 @@ export default function MapPage() {
 
     const t = setTimeout(() => {
       if (step < list.length - 1) setStep(step + 1);
-      else if (phase === "scary") setPhase("static");
+      else if (phase === "scary") setPhase("empty");
     }, ms);
     return () => clearTimeout(t);
   }, [phase, step, started, runId]);
 
-  // Jumpscare video has its own sound, so silence everything else
+  useEffect(() => {
+    if (phase !== "empty") return;
+    const go = () => setPhase("video");
+    window.addEventListener("keydown", go);
+    return () => window.removeEventListener("keydown", go);
+  }, [phase]);
+
   useEffect(() => {
     if (phase === "video") {
       tutorialRef.current?.pause();
@@ -220,14 +161,10 @@ export default function MapPage() {
 
   const handleLocation = (name: string) => {
     if (phase !== "intro") return;
-
-    // Action 1: Library goes to the library page
     if (name === "Library") {
       router.push(LIBRARY_ROUTE);
       return;
     }
-
-    // Action 2: any other location starts the scary sequence
     tutorialRef.current?.pause();
     const scary = scaryRef.current;
     if (scary) {
@@ -238,7 +175,6 @@ export default function MapPage() {
     setStep(0);
   };
 
-  // Back to the start of the map page once the jumpscare video ends
   const restart = () => {
     setPhase("intro");
     setStep(0);
@@ -297,12 +233,16 @@ export default function MapPage() {
         .fiarce-pop { animation: fiarce-pop 0.5s ease-out both; }
         .fiarce-wobble { animation: fiarce-wobble 0.6s ease-in-out infinite; }
 
-        @keyframes glitch-jitter {
-          0%   { transform: translate(-1.2vw, 0.3vw) skewX(-6deg); filter: hue-rotate(90deg) saturate(3) contrast(1.4); }
-          50%  { transform: translate(1.2vw, -0.3vw) skewX(6deg); filter: invert(1) contrast(1.6); }
-          100% { transform: translate(-0.5vw, 0) skewX(0deg); filter: hue-rotate(-90deg) saturate(3); }
+        @keyframes scary-flicker {
+          0%   { opacity: 1; }
+          15%  { opacity: 0.05; }
+          30%  { opacity: 1; }
+          45%  { opacity: 0; }
+          60%  { opacity: 1; }
+          75%  { opacity: 0.1; }
+          100% { opacity: 1; }
         }
-        .glitch { animation: glitch-jitter ${GLITCH_MS}ms steps(3) both; }
+        .glitch { animation: scary-flicker ${GLITCH_MS}ms steps(1, end) both; }
 
         @media (prefers-reduced-motion: reduce) {
           .bubble-float-a, .bubble-float-b { animation: none; }
@@ -359,7 +299,6 @@ export default function MapPage() {
           className="block h-auto w-full drop-shadow-2xl"
         />
 
-        {/* Location buttons */}
         {LOCATIONS.map((loc) => (
           <button
             key={loc.name}
@@ -382,7 +321,6 @@ export default function MapPage() {
           </button>
         ))}
 
-        {/* Clicking hand */}
         {current?.hand && (
           <div
             key={`hand-${phase}-${step}`}
@@ -395,7 +333,6 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* fiarce.png wobble (centered on the screen area) */}
         {current?.fiarce && (
           <div
             key={`fiarce-${phase}-${step}`}
@@ -411,7 +348,7 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* ============ AALIYAH (frame swapping) ============ */}
+      {/* ============ AALIYAH ============ */}
       <div
         className={`pointer-events-none absolute z-30 ${current?.glitch ? "glitch" : ""}`}
         style={{ left: "-17.5vw", top: "9.7vw", width: "88.2vw" }}
@@ -439,7 +376,7 @@ export default function MapPage() {
         <Image src="/images/map/message.png" alt="Speech bubble" width={0} height={0} sizes="7vw" className="block h-auto w-full scale-x-[-1]" />
       </div>
 
-      {/* ============ TAP TO START (only if the browser blocked autoplay) ============ */}
+      {/* ============ TAP TO START ============ */}
       {needsTap && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
           <button
@@ -451,8 +388,14 @@ export default function MapPage() {
         </div>
       )}
 
-      {/* ============ STATIC, THEN JUMPSCARE VIDEO ============ */}
-      {phase === "static" && <StaticNoise onClick={() => setPhase("video")} />}
+      {/* ============ JUMPSCARE TRIGGER ============ */}
+      {phase === "empty" && (
+        <div
+          className="fixed inset-0 z-[100]"
+          onClick={() => setPhase("video")}
+          aria-hidden="true"
+        />
+      )}
 
       {phase === "video" && (
         <video

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import SchoolHeader from "@/components/SchoolHeader";
@@ -181,8 +181,23 @@ function AdventureHeading({ fontClass }: { fontClass: string }) {
   );
 }
 
+function InlineHamburger() {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-hamburger mx-1.5 inline-flex h-[1.15em] w-[1.15em] flex-col items-center justify-center gap-[0.16em] align-middle"
+    >
+      <span className="h-[0.12em] w-[0.72em] rounded-full bg-[#211f17]" />
+      <span className="h-[0.12em] w-[0.72em] rounded-full bg-[#211f17]" />
+      <span className="h-[0.12em] w-[0.72em] rounded-full bg-[#211f17]" />
+    </span>
+  );
+}
+
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tvVideoRef = useRef<HTMLVideoElement>(null);
+  const [tvPlaying, setTvPlaying] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -202,6 +217,16 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  const toggleTvPlay = () => {
+    const v = tvVideoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      void v.play();
+    } else {
+      v.pause();
+    }
+  };
+
   return (
     <main ref={containerRef} className="no-scrollbar h-[100svh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth bg-[#fafaf8]">
 
@@ -213,6 +238,19 @@ export default function Home() {
         @keyframes path-square { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(10px, -10px); } 50% { transform: translate(20px, 0); } 75% { transform: translate(10px, 10px); } }
         @keyframes path-triangle { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(-15px, -15px); } 66% { transform: translate(15px, -15px); } }
         @keyframes path-diamond { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(10px, -12px); } 50% { transform: translate(20px, 0); } 75% { transform: translate(10px, 12px); } }
+
+        @keyframes inline-hamburger-heartbeat {
+          0%   { transform: scale(1); }
+          14%  { transform: scale(1.22); }
+          28%  { transform: scale(1); }
+          42%  { transform: scale(1.22); }
+          70%  { transform: scale(1); }
+          100% { transform: scale(1); }
+        }
+        .inline-hamburger {
+          transform-origin: center;
+          animation: inline-hamburger-heartbeat 3.2s ease-in-out infinite;
+        }
 
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -241,7 +279,7 @@ export default function Home() {
       </div>
 
       {/* ============ SECTION 1 — RETRO HERO ============ */}
-      <section 
+      <section
         className="relative flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden"
         style={{ background: "linear-gradient(to bottom, #b6d9cc 40%, #7ca6de 100%)" }}
       >
@@ -260,7 +298,7 @@ export default function Home() {
 
         <div className="relative z-10 flex flex-1 items-center justify-center px-4 pb-24 pt-24 sm:px-8 sm:pb-28">
           <div className="mx-auto grid w-full max-w-3xl grid-cols-1 items-center gap-8 sm:gap-10 md:grid-cols-[280px_minmax(0,1fr)] md:gap-12 lg:max-w-5xl lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
-            
+
             <div className="mx-auto flex w-full max-w-[180px] items-center justify-center md:max-w-none slide-up-anim sm:max-w-[260px]">
               <div className="relative aspect-square w-full drop-shadow-[8px_12px_4px_rgba(0,0,0,0.8)]">
                 <Image src="/images/Seal.png" alt="University of Santo Fiarce seal" fill priority sizes="(max-width: 767px) 180px, 320px" className="object-contain" />
@@ -363,7 +401,7 @@ export default function Home() {
 
         {/* Wrapper shifted right on desktop, centered on mobile */}
         <div className="relative flex flex-1 flex-col md:left-[5%] md:w-[95%]">
-          
+
           {/* CLUSTER A (Top Left) - Hidden on mobile to avoid text overlap */}
           <div className="hidden sm:block absolute top-[17%] left-[6%] z-20 pointer-events-none anim-path-2 rotate-[10deg]">
             <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
@@ -400,19 +438,62 @@ export default function Home() {
 
           <div className="relative z-10 flex flex-1 items-center px-6 pb-10 pt-24 sm:px-10">
             <div className="mx-auto grid w-full max-w-7xl items-center gap-8 md:grid-cols-[1fr_1.5fr] md:gap-12">
-              
-              {/* Left Column: TV Image */}
+
+              {/* Left Column: TV-style video frame */}
               <div className="relative flex w-full items-center justify-center md:justify-start">
-                {/* TV Image - Centered on mobile, scaled down. Left aligned and huge on desktop. */}
-                <div className="relative aspect-square w-[400px] max-w-[300px] drop-shadow-xl z-0 sm:w-[800px] md:w-[1200px] md:max-w-[300px]">
-                  <Image
-                    src="/images/tv.png"
-                    alt="Vintage TV"
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 100vw, 1200px"
-                    className="object-contain scale-[1.2] sm:scale-[2.2] md:scale-[3.2] lg:scale-[3.7] -translate-y-8 md:-translate-y-15 md:-translate-x-2"
-                  />
+                <div className="w-full max-w-md md:max-w-lg">
+                  {/* Outer TV frame */}
+                  <div className="rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)]">
+                    {/* Inner screen */}
+                    <div className="group relative aspect-video border-[5px] border-[#1f2329] bg-black overflow-hidden">
+                      <video
+                        ref={tvVideoRef}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        src="/videos/A.mp4"
+                        playsInline
+                        preload="metadata"
+                        onClick={toggleTvPlay}
+                        onPlay={() => setTvPlaying(true)}
+                        onPause={() => setTvPlaying(false)}
+                        onEnded={() => setTvPlaying(false)}
+                      />
+
+                      {/* Play overlay (hidden while playing) */}
+                      {!tvPlaying && (
+                        <button
+                          type="button"
+                          onClick={toggleTvPlay}
+                          aria-label="Play video"
+                          className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 hover:bg-black/30"
+                        >
+                          <span className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-full border-[4px] border-[#1f2329] shadow-[4px_5px_0_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-105 bg-[#ffe793]">
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-7 w-7 md:h-9 md:w-9 translate-x-[2px]"
+                              fill="#1f2329"
+                              aria-hidden="true"
+                            >
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </span>
+                        </button>
+                      )}
+
+                      {/* Pause button while playing */}
+                      {tvPlaying && (
+                        <button
+                          type="button"
+                          onClick={toggleTvPlay}
+                          aria-label="Pause video"
+                          className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100 bg-[#ffe793]"
+                        >
+                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
+                            <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -421,20 +502,23 @@ export default function Home() {
                 <div className="origin-center md:origin-left scale-[1.2] mb-6 md:mb-10 text-center md:text-left flex justify-center md:justify-start">
                   <AdventureHeading fontClass={sifonn.className} />
                 </div>
-                
+
                 <div className={`${plexMonoRegular.className} mt-5 w-full space-y-5 text-[clamp(1rem,2.6vw,1.62rem)] font-normal leading-relaxed text-[#111] md:mt-7 md:space-y-6 text-center md:text-left`}>
-                  <p>Explore the website in full and answer the form at the end to earn your incentive.</p>
+                  <p>
+                    Explore the website in full and answer the form found at the navigation tab (
+                    <InlineHamburger />
+                    ) to earn your incentive.
+                  </p>
                   <p>Screenshot your certificate and upload it in the assignments tab under your HMRM1 course.</p>
                 </div>
-                
+
                 <div className="mt-8 flex justify-center md:mt-10">
-                  <button
-                    type="button"
-                    onClick={() => { /* TODO */ }}
-                    className={`${plexMonoRegular.className} border-[3px] border-black bg-[#c9c9c9] px-8 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+                  <Link
+                    href="/map"
+                    className={`${plexMonoRegular.className} inline-block border-[3px] border-black bg-[#c9c9c9] px-8 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
                   >
                     Begin Tour
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

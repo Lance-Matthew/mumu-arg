@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
@@ -57,14 +58,82 @@ const ShapeAnimations = () => (
     .anim-path-1 { animation: path-square 4s linear infinite; }
     .anim-path-2 { animation: path-triangle 5s linear infinite; }
     .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
+
+    [data-video-frame]:fullscreen {
+      aspect-ratio: auto !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      border: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: black;
+    }
+    [data-video-frame]:fullscreen video {
+      position: static !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+    }
   `}</style>
 );
 
 export default function LibraryPage() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoFrameRef = useRef<HTMLDivElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Keep fullscreen state in sync (user can exit via Esc)
+  useEffect(() => {
+    const onChange = () => {
+      setIsFullscreen(document.fullscreenElement === videoFrameRef.current);
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await videoFrameRef.current?.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      /* fullscreen blocked */
+    }
+  };
+
+  const togglePlay = async () => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    if (v.paused) {
+      try {
+        if (videoFrameRef.current && !document.fullscreenElement) {
+          await videoFrameRef.current.requestFullscreen();
+        }
+      } catch {
+        /* fullscreen blocked — play normally */
+      }
+      void v.play();
+    } else {
+      v.pause();
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    const v = videoRef.current;
+    if (!v || !v.duration) return;
+    setProgress((v.currentTime / v.duration) * 100);
+  };
+
   return (
     <main className="min-h-screen w-full bg-white">
       <ShapeAnimations />
-      
+
       <div className="fixed top-0 left-0 z-50 w-full">
         <SchoolHeader />
       </div>
@@ -82,14 +151,14 @@ export default function LibraryPage() {
           />
         </div>
 
-        <div 
-          className="absolute inset-0 z-0" 
+        <div
+          className="absolute inset-0 z-0"
           style={{ background: "linear-gradient(to bottom, rgba(238,242,214,0.9) 0%, rgba(211,227,166,0.7) 45%, rgba(140,193,82,0.9) 90%, #8cc152 100%)" }}
         />
 
         <div className="relative z-10 flex flex-1 items-center px-6 sm:px-10 md:px-20">
           <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2">
-            
+
             <div className="w-fit max-w-full">
               <p className={`${sifonn.className} text-[clamp(1.25rem,2.1vw,1.6rem)] text-black`}>
                 About the
@@ -167,13 +236,13 @@ export default function LibraryPage() {
         style={{ background: "linear-gradient(to bottom, #8cc152 0%, #cfe3a8 22%, #ffffff 55%, #ffffff 100%)" }}
       >
         <div className="mx-auto flex w-full max-w-6xl flex-col px-6 sm:px-10 md:px-16">
-          
+
           <BlueHeading fontClass={sifonn.className} className="mb-12 text-[clamp(2.5rem,6vw,4.5rem)]">
             A Fiarcean History
           </BlueHeading>
 
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-8 md:gap-12 items-start">
-            
+
             <div className="flex flex-col gap-4">
               <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden shadow-lg border-4 border-[#f1f7e4]">
                 <Image
@@ -213,9 +282,9 @@ export default function LibraryPage() {
       >
         <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
           <div className="grid w-full items-start gap-12 md:grid-cols-[1.15fr_1fr] md:gap-16">
-            
+
             <div className="space-y-8">
-              
+
               {/* Borrowing Card - Title, then Row (Image Left, Text Right) */}
               <div className="rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-12 md:py-12" style={{ background: YELLOW }}>
                 <h3 className={`${plexMono.className} mb-6 text-center text-3xl font-bold text-black md:text-4xl`}>Borrowing</h3>
@@ -260,9 +329,129 @@ export default function LibraryPage() {
                 </div>
               </div>
 
+              {/* ---- Video frame (TV style, fullscreen on play) ---- */}
               <div className="rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)]">
-                <div className="aspect-video border-[5px] border-[#1f2329] bg-white" />
+                <div
+                  ref={videoFrameRef}
+                  data-video-frame
+                  className="group relative aspect-video border-[5px] border-[#1f2329] bg-black overflow-hidden"
+                >
+                  <video
+                    ref={videoRef}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    src="/videos/D.mp4"
+                    playsInline
+                    preload="metadata"
+                    onClick={togglePlay}
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => setPlaying(false)}
+                    onEnded={() => {
+                      setPlaying(false);
+                      setProgress(0);
+                      if (document.fullscreenElement) {
+                        void document.exitFullscreen();
+                      }
+                    }}
+                    onTimeUpdate={handleTimeUpdate}
+                  />
+
+                  {/* Custom play overlay (hidden while playing) */}
+                  {!playing && (
+                    <button
+                      type="button"
+                      onClick={togglePlay}
+                      aria-label="Play tour video in fullscreen"
+                      className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 hover:bg-black/30"
+                    >
+                      <span
+                        className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-full border-[4px] border-[#1f2329] shadow-[4px_5px_0_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-105"
+                        style={{ background: YELLOW }}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-7 w-7 md:h-9 md:w-9 translate-x-[2px]"
+                          fill="#1f2329"
+                          aria-hidden="true"
+                        >
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Controls (shown while playing) */}
+                  {playing && (
+                    <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
+                      {/* Pause */}
+                      <button
+                        type="button"
+                        onClick={togglePlay}
+                        aria-label="Pause tour video"
+                        className="flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
+                        style={{ background: YELLOW }}
+                      >
+                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
+                          <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                        </svg>
+                      </button>
+
+                      {/* Fullscreen toggle */}
+                      <button
+                        type="button"
+                        onClick={toggleFullscreen}
+                        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                        className="flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
+                        style={{ background: YELLOW }}
+                      >
+                        {isFullscreen ? (
+                          /* Exit fullscreen icon */
+                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
+                            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                          </svg>
+                        ) : (
+                          /* Enter fullscreen icon */
+                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
+                            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Fullscreen toggle in the play overlay (top-right corner) */}
+                  {!playing && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void toggleFullscreen();
+                      }}
+                      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                      className="absolute top-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
+                      style={{ background: YELLOW }}
+                    >
+                      {isFullscreen ? (
+                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
+                          <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
+                          <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Progress bar */}
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-1.5 bg-black/40">
+                    <div
+                      className="h-full transition-[width] duration-150 ease-linear"
+                      style={{ width: `${progress}%`, background: YELLOW }}
+                    />
+                  </div>
+                </div>
               </div>
+              {/* ---- End video frame ---- */}
             </div>
 
           </div>
