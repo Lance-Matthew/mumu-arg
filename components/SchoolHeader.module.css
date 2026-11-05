@@ -1,0 +1,51 @@
+.glitchTarget {
+  position: relative;
+  display: inline-block;
+  cursor: default;
+}
+
+/* the real text during a glitch — brief, stepped, subtle */
+.glitchTarget.glitching {
+  animation: corruptShift 0.15s steps(3) 1;
+}
+
+/* the ghost frame — a black offset that appears for a single frame */
+.glitchTarget.glitching::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #000;
+  transform: translate(-1px, 0);
+  opacity: 0.6;
+  pointer-events: none;
+  clip-path: inset(0 0 40% 0);
+  animation: ghostFrame 0.15s steps(2) 1;
+}
+
+/* a very faint green offset — barely visible, blends with the theme */
+.glitchTarget.glitching::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #006633;
+  transform: translate(1px, 0);
+  opacity: 0.35;
+  pointer-events: none;
+  clip-path: inset(60% 0 0 0);
+  animation: ghostFrame 0.15s steps(2) 1;
+}
+
+@keyframes corruptShift {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-1px, 1px); }
+  66%  { transform: translate(1px, 0); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes ghostFrame {
+  0%   { opacity: 0; }
+  50%  { opacity: 0.6; }
+  100% { opacity: 0; }
+}
