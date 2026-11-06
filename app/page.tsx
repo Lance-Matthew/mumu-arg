@@ -285,7 +285,7 @@ export default function Home() {
       >
         <div className="absolute inset-0">
           <Image
-            src="/images/main/campus.jpg"
+            src="/images/main/campus.JPG"
             alt="University of Santo Fiarce campus"
             fill
             priority
@@ -301,7 +301,7 @@ export default function Home() {
 
             <div className="mx-auto flex w-full max-w-[180px] items-center justify-center md:max-w-none slide-up-anim sm:max-w-[260px]">
               <div className="relative aspect-square w-full drop-shadow-[8px_12px_4px_rgba(0,0,0,0.8)]">
-                <Image src="/images/main/Seal.png" alt="University of Santo Fiarce seal" fill priority sizes="(max-width: 767px) 180px, 320px" className="object-contain" />
+                <Image src="/images/main/seal.png" alt="University of Santo Fiarce seal" fill priority sizes="(max-width: 767px) 180px, 320px" className="object-contain" />
               </div>
             </div>
 
