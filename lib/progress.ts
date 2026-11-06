@@ -4,6 +4,7 @@ export type Progress = {
   libraryVisited: boolean;
   introSeen: boolean;
   happySequencePlayed: boolean;
+  hasStartedGame: boolean; // ← added
 };
 
 const KEY = "app:progress:v1";
@@ -12,6 +13,7 @@ const DEFAULTS: Progress = {
   libraryVisited: false,
   introSeen: false,
   happySequencePlayed: false,
+  hasStartedGame: false, // ← added
 };
 
 let cached: Progress = DEFAULTS;
