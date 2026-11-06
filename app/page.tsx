@@ -272,6 +272,141 @@ export default function Home() {
           opacity: 1;
           transform: translateY(0);
         }
+
+        /* ===== Retro handheld-style TV shell ===== */
+        .handheld-tv {
+          background: #c9c9c9;
+          border-radius: 22px;
+          box-shadow:
+            0 0 0 3px #000,
+            inset -4px -4px 0 #6b6b6b,
+            inset 4px 4px 0 #fff,
+            0 12px 20px rgba(0,0,0,0.4);
+          position: relative;
+        }
+        .handheld-tv__bezel {
+          background: #1a2036;
+          border: 3px solid #000;
+          border-radius: 12px;
+          box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+        }
+        .handheld-tv__screen {
+          border-radius: 6px;
+          overflow: hidden;
+          position: relative;
+        }
+        .handheld-tv__screen::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 5;
+          border-radius: inherit;
+          background:
+            radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%),
+            linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.2) 100%);
+        }
+        .handheld-tv__screen::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 6;
+          border-radius: inherit;
+          background-image: repeating-linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.12) 0px,
+            rgba(0,0,0,0.12) 1px,
+            rgba(0,0,0,0) 2px,
+            rgba(0,0,0,0) 3px
+          );
+          mix-blend-mode: multiply;
+          opacity: 0.6;
+        }
+        .crt-video {
+          filter: saturate(1.1) contrast(1.03);
+        }
+
+        /* ===== Antenna ===== */
+        .tv-antenna {
+          position: absolute;
+          left: 50%;
+          top: -34px;
+          transform: translateX(-50%);
+          width: 90px;
+          height: 44px;
+          pointer-events: none;
+        }
+        .tv-antenna__base {
+          position: absolute;
+          left: 50%;
+          bottom: 0;
+          transform: translateX(-50%);
+          width: 22px;
+          height: 10px;
+          background: #2b2b2b;
+          border: 2px solid #000;
+          border-radius: 4px 4px 2px 2px;
+        }
+        .tv-antenna__rod {
+          position: absolute;
+          bottom: 8px;
+          width: 3px;
+          height: 40px;
+          background: linear-gradient(to top, #2b2b2b, #9a9a9a);
+          border: 1px solid #000;
+          border-radius: 2px;
+          transform-origin: bottom center;
+        }
+        .tv-antenna__rod--left { left: 50%; transform: translateX(-50%) rotate(-28deg); }
+        .tv-antenna__rod--right { left: 50%; transform: translateX(-50%) rotate(28deg); }
+        .tv-antenna__tip {
+          position: absolute;
+          top: -3px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 6px;
+          height: 6px;
+          border-radius: 9999px;
+          background: #d9d9d9;
+          border: 1px solid #000;
+        }
+
+        /* ===== LED dots ===== */
+        .tv-led {
+          width: 10px;
+          height: 10px;
+          border-radius: 9999px;
+          border: 2px solid #000;
+        }
+        .tv-led--red { background: #ff3b3b; box-shadow: 0 0 8px #ff3b3b; }
+        .tv-led--yellow { background: #ffd23f; box-shadow: 0 0 8px #ffd23f; }
+        .tv-led--blue { background: #4cc2ff; box-shadow: 0 0 8px #4cc2ff; }
+
+        /* ===== Decorative push button ===== */
+        .tv-button {
+          width: 34px;
+          height: 34px;
+          border-radius: 9999px;
+          border: 3px solid #000;
+          background: radial-gradient(circle at 35% 30%, #e9e9e9, #a8a8a8 70%, #6b6b6b 100%);
+          box-shadow:
+            inset -2px -2px 0 #6b6b6b,
+            inset 2px 2px 0 #ffffff,
+            0 3px 0 #000;
+        }
+
+        /* ===== Scale wrapper: enlarges the whole TV unit as one piece ===== */
+        .tv-scale-wrap {
+          transform: scale(1);
+          transform-origin: center center;
+        }
+        @media (min-width: 768px) {
+          .tv-scale-wrap { transform: scale(1.25); }
+        }
+        @media (min-width: 1024px) {
+          .tv-scale-wrap { transform: scale(1.5); }
+        }
       `}</style>
 
       <div className="fixed top-0 left-0 z-50 w-full">
@@ -439,59 +574,88 @@ export default function Home() {
           <div className="relative z-10 flex flex-1 items-center px-6 pb-10 pt-24 sm:px-10">
             <div className="mx-auto grid w-full max-w-7xl items-center gap-8 md:grid-cols-[1fr_1.5fr] md:gap-12">
 
-              {/* Left Column: TV-style video frame */}
+              {/* Left Column: Retro handheld-style TV frame — whole unit scaled up, frame design unchanged */}
               <div className="relative flex w-full items-center justify-center md:justify-start">
                 <div className="w-full max-w-md md:max-w-lg">
-                  {/* Outer TV frame */}
-                  <div className="rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)]">
-                    {/* Inner screen */}
-                    <div className="group relative aspect-video border-[5px] border-[#1f2329] bg-black overflow-hidden">
-                      <video
-                        ref={tvVideoRef}
-                        className="absolute inset-0 h-full w-full object-cover"
-                        src="/videos/A.mp4"
-                        playsInline
-                        preload="metadata"
-                        onClick={toggleTvPlay}
-                        onPlay={() => setTvPlaying(true)}
-                        onPause={() => setTvPlaying(false)}
-                        onEnded={() => setTvPlaying(false)}
-                      />
+                  {/* Scale wrapper enlarges shell + screen + video + antenna + dots + button together */}
+                  <div className="tv-scale-wrap">
+                    {/* Antenna sits above the shell */}
+                    <div className="relative">
+                      <div className="tv-antenna" aria-hidden="true">
+                        <span className="tv-antenna__base" />
+                        <span className="tv-antenna__rod tv-antenna__rod--left">
+                          <span className="tv-antenna__tip" />
+                        </span>
+                        <span className="tv-antenna__rod tv-antenna__rod--right">
+                          <span className="tv-antenna__tip" />
+                        </span>
+                      </div>
 
-                      {/* Play overlay (hidden while playing) */}
-                      {!tvPlaying && (
-                        <button
-                          type="button"
-                          onClick={toggleTvPlay}
-                          aria-label="Play video"
-                          className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 hover:bg-black/30"
-                        >
-                          <span className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-full border-[4px] border-[#1f2329] shadow-[4px_5px_0_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-105 bg-[#ffe793]">
-                            <svg
-                              viewBox="0 0 24 24"
-                              className="h-7 w-7 md:h-9 md:w-9 translate-x-[2px]"
-                              fill="#1f2329"
-                              aria-hidden="true"
-                            >
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
-                          </span>
-                        </button>
-                      )}
+                      {/* Outer handheld-style shell (same proportions as before) */}
+                      <div className="handheld-tv p-5 md:p-6">
+                        {/* Bezel */}
+                        <div className="handheld-tv__bezel p-3 md:p-4">
+                          {/* Screen */}
+                          <div className="handheld-tv__screen aspect-video bg-black">
+                            <video
+                              ref={tvVideoRef}
+                              className="crt-video absolute inset-0 h-full w-full object-cover"
+                              src="/videos/A.mp4"
+                              playsInline
+                              preload="metadata"
+                              onClick={toggleTvPlay}
+                              onPlay={() => setTvPlaying(true)}
+                              onPause={() => setTvPlaying(false)}
+                              onEnded={() => setTvPlaying(false)}
+                            />
 
-                      {/* Pause button while playing */}
-                      {tvPlaying && (
-                        <button
-                          type="button"
-                          onClick={toggleTvPlay}
-                          aria-label="Pause video"
-                          className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100 bg-[#ffe793]"
-                        >
-                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
-                            <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
-                          </svg>
-                        </button>
-                      )}
+                            {/* Play overlay (hidden while playing) */}
+                            {!tvPlaying && (
+                              <button
+                                type="button"
+                                onClick={toggleTvPlay}
+                                aria-label="Play video"
+                                className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 hover:bg-black/30"
+                              >
+                                <span className="flex h-16 w-16 items-center justify-center rounded-full border-[4px] border-[#1f2329] bg-[#ffe793] shadow-[4px_5px_0_rgba(0,0,0,0.45)] transition-transform duration-200 hover:scale-105 md:h-20 md:w-20">
+                                  <svg
+                                    viewBox="0 0 24 24"
+                                    className="h-7 w-7 translate-x-[2px] md:h-9 md:w-9"
+                                    fill="#1f2329"
+                                    aria-hidden="true"
+                                  >
+                                    <path d="M8 5v14l11-7z" />
+                                  </svg>
+                                </span>
+                              </button>
+                            )}
+
+                            {/* Pause button while playing */}
+                            {tvPlaying && (
+                              <button
+                                type="button"
+                                onClick={toggleTvPlay}
+                                aria-label="Pause video"
+                                className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] bg-[#ffe793] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
+                              >
+                                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
+                                  <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Bottom detail row: LED dots (red, yellow, blue) + push button */}
+                        <div className="mt-3 flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2">
+                            <span className="tv-led tv-led--red" aria-hidden="true" />
+                            <span className="tv-led tv-led--yellow" aria-hidden="true" />
+                            <span className="tv-led tv-led--blue" aria-hidden="true" />
+                          </div>
+                          <span className="tv-button" aria-hidden="true" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

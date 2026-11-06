@@ -3,6 +3,7 @@
 export type Progress = {
   libraryVisited: boolean;
   introSeen: boolean;
+  happySequencePlayed: boolean;
 };
 
 const KEY = "app:progress:v1";
@@ -10,9 +11,9 @@ const KEY = "app:progress:v1";
 const DEFAULTS: Progress = {
   libraryVisited: false,
   introSeen: false,
+  happySequencePlayed: false,
 };
 
-/* ---------- stable cached snapshot ---------- */
 let cached: Progress = DEFAULTS;
 let cachedJson = JSON.stringify(DEFAULTS);
 
