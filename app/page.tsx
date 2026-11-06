@@ -285,7 +285,7 @@ export default function Home() {
       >
         <div className="absolute inset-0">
           <Image
-            src="/images/campus.jpg"
+            src="/images/main/campus.jpg"
             alt="University of Santo Fiarce campus"
             fill
             priority
@@ -301,7 +301,7 @@ export default function Home() {
 
             <div className="mx-auto flex w-full max-w-[180px] items-center justify-center md:max-w-none slide-up-anim sm:max-w-[260px]">
               <div className="relative aspect-square w-full drop-shadow-[8px_12px_4px_rgba(0,0,0,0.8)]">
-                <Image src="/images/Seal.png" alt="University of Santo Fiarce seal" fill priority sizes="(max-width: 767px) 180px, 320px" className="object-contain" />
+                <Image src="/images/main/Seal.png" alt="University of Santo Fiarce seal" fill priority sizes="(max-width: 767px) 180px, 320px" className="object-contain" />
               </div>
             </div>
 
@@ -326,7 +326,7 @@ export default function Home() {
         >
           <span className="font-mono text-base font-bold tracking-widest sm:text-lg">continue</span>
           <div className="relative h-[40px] w-[48px] sm:h-[60px] sm:w-[68px] animate-bounce transition-transform duration-200 group-hover:scale-110">
-            <Image src="/images/downArrow.png" alt="" fill sizes="68px" className="object-contain" />
+            <Image src="/images/main/downArrow.png" alt="" fill sizes="68px" className="object-contain" />
           </div>
         </button>
       </section>
