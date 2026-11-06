@@ -76,7 +76,7 @@ export default function ClassroomsPage() {
         
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/classrooms/classrooms1.jpg"
+            src="/images/classrooms/classrooms1.JPG"
             alt="Classrooms background"
             fill
             priority

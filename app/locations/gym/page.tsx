@@ -91,7 +91,7 @@ export default function SportsCenterPage() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/gym/gym1.jpg"
+            src="/images/gym/gym1.JPG"
             alt="Gym background"
             fill
             priority

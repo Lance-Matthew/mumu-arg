@@ -283,7 +283,7 @@ export default function TheaterPage() {
                   className="absolute -left-4 md:-left-10 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:h-14 md:w-14"
                 >
                   <div className="relative w-2/3 h-2/3 rotate-90">
-                    <Image src="/images/downArrow.png" alt="Left" fill sizes="56px" className="object-contain" />
+                    <Image src="/images/main/downArrow.png" alt="Left" fill sizes="56px" className="object-contain" />
                   </div>
                 </button>
               )}
