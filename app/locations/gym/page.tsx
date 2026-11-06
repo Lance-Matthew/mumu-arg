@@ -3,7 +3,9 @@
 import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
+import Link from "next/link";
 import SchoolHeader from "@/components/SchoolHeader";
+import VideoFrame from "@/components/VideoFrame";
 
 const sifonn = localFont({
   src: "../../fonts/Sifonn.otf",
@@ -45,12 +47,12 @@ function GreenHeading({
 function CourseCard({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`rounded-2xl px-6 py-6 shadow-[6px_8px_12px_rgba(0,0,0,0.25)] flex flex-col justify-center ${className}`}
+      className={`flex flex-col rounded-2xl px-6 py-6 shadow-[6px_8px_12px_rgba(0,0,0,0.25)] ${className}`}
       style={{ background: YELLOW }}
     >
       <h3 className={`${plexMono.className} mb-3 text-2xl font-bold text-black`}>PECRD</h3>
-      <p className={`${plexMono.className} pl-3 text-sm leading-snug text-black`}>
-        Fusce euismod et neque a interdum. Aliquam et feugiat nunc.
+      <p className={`${plexMono.className} text-sm leading-relaxed text-black`}>
+        Fusce euismod et neque a interdum. Aliquam et feugiat nunc. Vestibulum eu turpis felis.
       </p>
     </div>
   );
@@ -78,14 +80,14 @@ export default function SportsCenterPage() {
   return (
     <main className="min-h-screen w-full bg-white">
       <ShapeAnimations />
-      
+
       <div className="fixed top-0 left-0 z-50 w-full">
         <SchoolHeader />
       </div>
 
       {/* ============ SECTION 1 — ABOUT THE GLORIA GYM HALL (HERO) ============ */}
       <section className="relative flex min-h-[100svh] w-full flex-col justify-center overflow-hidden pt-16">
-        
+
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -97,17 +99,17 @@ export default function SportsCenterPage() {
             className="object-cover object-center"
           />
           {/* Gradient Overlay */}
-          <div 
-            className="absolute inset-0" 
-            style={{ 
-              background: "linear-gradient(to bottom, rgba(233,236,234,0.9) 0%, rgba(221,232,244,0.6) 30%, rgba(185,212,250,0.8) 65%, rgba(105,166,255,0.95) 95%, #69a6ff 100%)" 
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(to bottom, rgba(233,236,234,0.9) 0%, rgba(221,232,244,0.6) 30%, rgba(185,212,250,0.8) 65%, rgba(105,166,255,0.95) 95%, #69a6ff 100%)"
             }}
           />
         </div>
 
         <div className="relative z-10 flex flex-1 items-center px-6 sm:px-10 md:px-20">
           <div className="mx-auto grid w-full max-w-6xl grid-cols-1 md:grid-cols-2 items-center gap-12">
-            
+
             {/* Text Content */}
             <div className="w-fit max-w-full">
               <p className={`${sifonn.className} text-[clamp(1.25rem,2.1vw,1.6rem)] text-black`}>About the</p>
@@ -139,18 +141,18 @@ export default function SportsCenterPage() {
               {/* CLUSTER A - Top */}
               <div className="absolute top-[6%] right-[6%] w-24 h-24 md:w-32 md:h-32 pointer-events-none z-20">
                 <div className="absolute top-0 left-0 anim-path-2">
-                  <div className="relative h-8 w-8 md:h-10 md:w-10 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
-                    <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="40px" className="object-contain" />
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
+                    <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute top-[30%] left-[30%] anim-path-3">
-                  <div className="relative h-10 w-10 md:h-[3.25rem] md:w-[3.25rem] anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#fff0a3)_drop-shadow(-1.5px_0_0_#fff0a3)_drop-shadow(0_1.5px_0_#fff0a3)_drop-shadow(0_-1.5px_0_#fff0a3)]">
-                    <Image src="/images/shapes/fita1.png" alt="Fita shape" fill sizes="52px" className="object-contain" />
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#fff0a3)_drop-shadow(-1.5px_0_0_#fff0a3)_drop-shadow(0_1.5px_0_#fff0a3)_drop-shadow(0_-1.5px_0_#fff0a3)]">
+                    <Image src="/images/shapes/fita1.png" alt="Fita shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute bottom-0 right-0 anim-path-1">
-                  <div className="relative h-8 w-8 md:h-10 md:w-10 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
-                    <Image src="/images/shapes/noodle2.png" alt="Noodle shape" fill sizes="40px" className="object-contain" />
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
+                    <Image src="/images/shapes/noodle2.png" alt="Noodle shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
               </div>
@@ -158,18 +160,18 @@ export default function SportsCenterPage() {
               {/* CLUSTER B - Bottom */}
               <div className="absolute bottom-[3%] left-[3%] w-24 h-24 md:w-32 md:h-32 pointer-events-none z-20">
                 <div className="absolute top-0 left-0 anim-path-3">
-                  <div className="relative h-8 w-8 md:h-10 md:w-10 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
-                    <Image src="/images/shapes/noodle1.png" alt="Noodle shape" fill sizes="40px" className="object-contain" />
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
+                    <Image src="/images/shapes/noodle1.png" alt="Noodle shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute top-[30%] left-[30%] anim-path-1">
-                  <div className="relative h-10 w-10 md:h-[3.25rem] md:w-[3.25rem] anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#fff0a3)_drop-shadow(-1.5px_0_0_#fff0a3)_drop-shadow(0_1.5px_0_#fff0a3)_drop-shadow(0_-1.5px_0_#fff0a3)]">
-                    <Image src="/images/shapes/fita2.png" alt="Fita shape" fill sizes="52px" className="object-contain" />
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#fff0a3)_drop-shadow(-1.5px_0_0_#fff0a3)_drop-shadow(0_1.5px_0_#fff0a3)_drop-shadow(0_-1.5px_0_#fff0a3)]">
+                    <Image src="/images/shapes/fita2.png" alt="Fita shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute bottom-0 right-0 anim-path-2">
-                  <div className="relative h-8 w-8 md:h-10 md:w-10 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
-                    <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="40px" className="object-contain" />
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
+                    <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
               </div>
@@ -179,51 +181,68 @@ export default function SportsCenterPage() {
         </div>
       </section>
 
-      {/* ============ SECTION 2 — COURSE OFFERINGS + TOUR WITH ALI ============ */}
+      {/* ============ SECTION 2 — COURSE OFFERINGS ============ */}
       <section
         id="courses"
         className="relative w-full py-24"
-        style={{ 
-          background: "linear-gradient(to bottom, #69a6ff 0%, #69a6ff 10%, #b9d4fa 25%, #eef4fd 45%, #ffffff 65%, #ffffff 100%)" 
+        style={{
+          background: "linear-gradient(to bottom, #69a6ff 0%, #69a6ff 10%, #b9d4fa 25%, #eef4fd 45%, #ffffff 65%, #ffffff 100%)"
         }}
       >
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-10 md:px-12">
-          
-          <GreenHeading fontClass={sifonn.className} className="mb-8 text-[clamp(2.5rem,6vw,4rem)] md:mb-6">
+        <div className="relative z-10 mx-auto w-full max-w-5xl px-6 sm:px-10 md:px-12">
+
+          <GreenHeading fontClass={sifonn.className} className="mb-12 text-[clamp(2.5rem,6vw,4rem)]">
             Course Offerings
           </GreenHeading>
 
-          <div className="grid gap-x-10 gap-y-6 md:grid-cols-3 md:px-8">
+          {/* Course cards — uniform grid, stretch to equal height per row */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 md:gap-8">
             <CourseCard />
             <CourseCard />
             <CourseCard />
+            <CourseCard />
+            <CourseCard />
+          </div>
+        </div>
+      </section>
 
-            <CourseCard className="md:col-start-1 md:row-start-2" />
+      {/* ============ SECTION 3 — TOUR WITH ALI (BOTTOM) ============ */}
+      <section
+        className="relative w-full py-24"
+        style={{ background: "linear-gradient(to bottom, #ffffff 0%, #ffffff 100%)" }}
+      >
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
 
-            <div className="md:col-span-2 md:col-start-2 md:row-span-2 md:row-start-2 flex flex-col mt-4 md:mt-0">
-              
-              <div className="flex items-center gap-4 mb-4">
-                <GreenHeading fontClass={sifonn.className} className="text-[clamp(2rem,4.5vw,3rem)]">
+          {/* Heading row — aligned to frame edges, sits right above the frame */}
+          <div className="mx-auto w-full max-w-5xl">
+            <div className="mb-2 flex items-end justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <GreenHeading fontClass={sifonn.className} className="text-[clamp(2rem,4.5vw,3.75rem)]">
                   Tour with Ali
                 </GreenHeading>
-                <div className="relative w-12 h-12 md:w-16 md:h-16 shrink-0">
+                <div className="relative w-14 h-14 md:w-20 md:h-20 shrink-0">
                   <Image
                     src="/images/gym/gymArrow.png"
                     alt="Arrow"
                     fill
-                    sizes="64px"
+                    sizes="80px"
                     className="object-contain"
                   />
                 </div>
               </div>
-              
-              <div className="aspect-video w-full rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)] flex flex-col">
-                <div className="flex-1 border-[5px] border-[#1f2329] bg-white" />
-              </div>
-            </div>
 
-            <CourseCard className="md:col-start-1 md:row-start-3" />
+              {/* Back to Campus Map button — top right, aligned with heading bottom edge */}
+              <Link
+                href="/map"
+                className={`${plexMono.className} mb-2 shrink-0 border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+              >
+                Back to Campus Map
+              </Link>
+            </div>
           </div>
+
+          <VideoFrame src="/videos/D.mp4" />
+
         </div>
       </section>
 

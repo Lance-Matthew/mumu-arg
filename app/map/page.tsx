@@ -7,6 +7,12 @@ import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import SchoolHeader from "@/components/SchoolHeader";
 
+// ── progress ────────────────────────────────────────────────────
+import { useProgress } from "@/lib/useProgress";
+import { writeProgress } from "@/lib/progress";
+import DebugResetButton from "@/components/DebugResetButton";
+// ────────────────────────────────────────────────────────────────
+
 const sifonn = localFont({
   src: "../fonts/Sifonn.otf",
   display: "swap",
@@ -40,7 +46,17 @@ const ASSETS = {
   jumpscare: "/videos/aaliyahJumpscare.mp4",
 };
 
-const LIBRARY_ROUTE = "/locations/library";
+/* ==========================================
+   ROUTES — adjust to your real folders
+   ========================================== */
+const ROUTES: Record<string, string> = {
+  Library: "/locations/library",
+  Gym: "/locations/gym",
+  Theater: "/locations/theater",
+  STEM: "/locations/stem",
+  Classrooms: "/locations/classrooms",
+};
+
 const LOCK_BUTTONS_DURING_TUTORIAL = true;
 
 /* ==========================================
@@ -96,19 +112,44 @@ const HAND_TOP = LIBRARY.top + 2;
 
 type Phase = "intro" | "scary" | "empty" | "video";
 
+/* ==========================================
+   COMPONENT
+   ========================================== */
 export default function MapPage() {
   const router = useRouter();
+
+  // ── progress ────────────────────────────────────────────────
+  const progress = useProgress();
+  const visited = progress.libraryVisited;   // true = already done the tutorial via Library
+  // ────────────────────────────────────────────────────────────
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [step, setStep] = useState(0);
   const [started, setStarted] = useState(false);
   const [needsTap, setNeedsTap] = useState(false);
   const [runId, setRunId] = useState(0);
+  const [hydrated, setHydrated] = useState(false);
 
   const tutorialRef = useRef<HTMLAudioElement | null>(null);
   const scaryRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // ── mount ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!hydrated) return;
+
+    // Already clicked Library before → land on last intro frame, no intro, no scary
+    if (visited) {
+      setPhase("intro");
+      setStep(INTRO.length - 1);
+      setStarted(true);
+      return;
+    }
+
+    // First visit → play the intro normally
     let cancelled = false;
     const tutorial = new Audio(ASSETS.tutorialAudio);
     const scary = new Audio(ASSETS.scaryAudio);
@@ -116,15 +157,20 @@ export default function MapPage() {
     tutorialRef.current = tutorial;
     scaryRef.current = scary;
 
-    tutorial.play().then(() => { if (!cancelled) setStarted(true); }).catch(() => { if (!cancelled) setNeedsTap(true); });
+    tutorial
+      .play()
+      .then(() => { if (!cancelled) setStarted(true); })
+      .catch(() => { if (!cancelled) setNeedsTap(true); });
 
     return () => {
       cancelled = true;
       tutorial.pause();
       scary.pause();
     };
-  }, [runId]);
+  }, [hydrated, runId, visited]);
+  // ────────────────────────────────────────────────────────────
 
+  // step timer
   useEffect(() => {
     if (!started) return;
     const list = phase === "intro" ? INTRO : phase === "scary" ? SCARY : null;
@@ -139,6 +185,7 @@ export default function MapPage() {
     return () => clearTimeout(t);
   }, [phase, step, started, runId]);
 
+  // empty → jumpscare trigger state (only reachable if they clicked a non-Library button on first visit)
   useEffect(() => {
     if (phase !== "empty") return;
     const go = () => setPhase("video");
@@ -159,12 +206,27 @@ export default function MapPage() {
     setStarted(true);
   };
 
+  // ── click handler ───────────────────────────────────────────
   const handleLocation = (name: string) => {
     if (phase !== "intro") return;
+
+    const route = ROUTES[name];
+    if (!route) return;
+
+    // Library → always navigate, and remember it so scary never plays again
     if (name === "Library") {
-      router.push(LIBRARY_ROUTE);
+      writeProgress({ libraryVisited: true });
+      router.push(route);
       return;
     }
+
+    // Already visited Library → any other button just navigates, no scary
+    if (visited) {
+      router.push(route);
+      return;
+    }
+
+    // First visit + non-Library → scary sequence
     tutorialRef.current?.pause();
     const scary = scaryRef.current;
     if (scary) {
@@ -174,6 +236,7 @@ export default function MapPage() {
     setPhase("scary");
     setStep(0);
   };
+  // ────────────────────────────────────────────────────────────
 
   const restart = () => {
     setPhase("intro");
@@ -184,13 +247,23 @@ export default function MapPage() {
   };
 
   const current: Step | null = phase === "intro" ? INTRO[step] : phase === "scary" ? SCARY[step] : null;
-  const canClick = phase === "intro" && started && (!LOCK_BUTTONS_DURING_TUTORIAL || step === INTRO.length - 1);
+
+  const canClick =
+    phase === "intro" &&
+    started &&
+    (visited || !LOCK_BUTTONS_DURING_TUTORIAL || step === INTRO.length - 1);
+
+  // once Library is visited, hide the hand / fiarce prompts (they only matter on the tutorial)
+  const showHand = !!current?.hand && !visited;
+  const showFiarce = !!current?.fiarce && !visited;
 
   return (
     <main
       className="relative h-[100svh] w-full overflow-hidden"
       style={{ background: "linear-gradient(to bottom, #eaf5b5 0%, #c7f0a2 50%, #8cc152 100%)" }}
     >
+      <DebugResetButton />
+
       <style>{`
         @keyframes bubble-float-a {
           0%, 100% { transform: translateY(0) rotate(-1.5deg); }
@@ -307,7 +380,7 @@ export default function MapPage() {
             onClick={() => handleLocation(loc.name)}
             aria-label={`Open ${loc.name}`}
             className={`${plexMono.className} absolute z-30 flex items-center justify-center border-2 border-black bg-[#c9c9c9] font-bold text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] enabled:cursor-pointer enabled:hover:bg-[#d6d6d6] enabled:active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff] ${
-              loc.name === "Library" && current?.hand ? "btn-press" : ""
+              loc.name === "Library" && showHand ? "btn-press" : ""
             }`}
             style={{
               left: `${loc.left}cqw`,
@@ -321,7 +394,7 @@ export default function MapPage() {
           </button>
         ))}
 
-        {current?.hand && (
+        {showHand && (
           <div
             key={`hand-${phase}-${step}`}
             className="pointer-events-none absolute z-50"
@@ -333,7 +406,7 @@ export default function MapPage() {
           </div>
         )}
 
-        {current?.fiarce && (
+        {showFiarce && (
           <div
             key={`fiarce-${phase}-${step}`}
             className="pointer-events-none absolute z-40"
@@ -389,6 +462,7 @@ export default function MapPage() {
       )}
 
       {/* ============ JUMPSCARE TRIGGER ============ */}
+      {/* Only reachable if they clicked a non-Library button on first visit */}
       {phase === "empty" && (
         <div
           className="fixed inset-0 z-[100]"

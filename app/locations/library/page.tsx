@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
+import Link from "next/link";
 import SchoolHeader from "@/components/SchoolHeader";
+import VideoFrame from "@/components/VideoFrame";
 
 const sifonn = localFont({
   src: "../../fonts/Sifonn.otf",
@@ -58,77 +59,84 @@ const ShapeAnimations = () => (
     .anim-path-1 { animation: path-square 4s linear infinite; }
     .anim-path-2 { animation: path-triangle 5s linear infinite; }
     .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
-
-    [data-video-frame]:fullscreen {
-      aspect-ratio: auto !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      border: none !important;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: black;
-    }
-    [data-video-frame]:fullscreen video {
-      position: static !important;
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain !important;
-    }
   `}</style>
 );
 
 export default function LibraryPage() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const videoFrameRef = useRef<HTMLDivElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Keep fullscreen state in sync (user can exit via Esc)
-  useEffect(() => {
-    const onChange = () => {
-      setIsFullscreen(document.fullscreenElement === videoFrameRef.current);
-    };
-    document.addEventListener("fullscreenchange", onChange);
-    return () => document.removeEventListener("fullscreenchange", onChange);
-  }, []);
-
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await videoFrameRef.current?.requestFullscreen();
-      } else {
-        await document.exitFullscreen();
-      }
-    } catch {
-      /* fullscreen blocked */
-    }
-  };
-
-  const togglePlay = async () => {
-    const v = videoRef.current;
-    if (!v) return;
-
-    if (v.paused) {
-      try {
-        if (videoFrameRef.current && !document.fullscreenElement) {
-          await videoFrameRef.current.requestFullscreen();
-        }
-      } catch {
-        /* fullscreen blocked — play normally */
-      }
-      void v.play();
-    } else {
-      v.pause();
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    const v = videoRef.current;
-    if (!v || !v.duration) return;
-    setProgress((v.currentTime / v.duration) * 100);
-  };
+  // Dummy QR code as an inline SVG data URI
+  const dummyQr =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" shape-rendering="crispEdges">
+        <rect width="100" height="100" fill="#ffffff"/>
+        <rect x="5" y="5" width="25" height="25" fill="#1f2329"/>
+        <rect x="10" y="10" width="15" height="15" fill="#ffffff"/>
+        <rect x="13" y="13" width="9" height="9" fill="#1f2329"/>
+        <rect x="70" y="5" width="25" height="25" fill="#1f2329"/>
+        <rect x="75" y="10" width="15" height="15" fill="#ffffff"/>
+        <rect x="78" y="13" width="9" height="9" fill="#1f2329"/>
+        <rect x="5" y="70" width="25" height="25" fill="#1f2329"/>
+        <rect x="10" y="75" width="15" height="15" fill="#ffffff"/>
+        <rect x="13" y="78" width="9" height="9" fill="#1f2329"/>
+        <rect x="38" y="8" width="6" height="6" fill="#1f2329"/>
+        <rect x="50" y="8" width="6" height="6" fill="#1f2329"/>
+        <rect x="44" y="16" width="6" height="6" fill="#1f2329"/>
+        <rect x="56" y="16" width="6" height="6" fill="#1f2329"/>
+        <rect x="38" y="24" width="6" height="6" fill="#1f2329"/>
+        <rect x="50" y="24" width="6" height="6" fill="#1f2329"/>
+        <rect x="8" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="20" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="8" y="50" width="6" height="6" fill="#1f2329"/>
+        <rect x="20" y="50" width="6" height="6" fill="#1f2329"/>
+        <rect x="8" y="56" width="6" height="6" fill="#1f2329"/>
+        <rect x="38" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="50" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="62" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="44" y="44" width="6" height="6" fill="#1f2329"/>
+        <rect x="56" y="44" width="6" height="6" fill="#1f2329"/>
+        <rect x="38" y="50" width="6" height="6" fill="#1f2329"/>
+        <rect x="62" y="50" width="6" height="6" fill="#1f2329"/>
+        <rect x="44" y="56" width="6" height="6" fill="#1f2329"/>
+        <rect x="56" y="56" width="6" height="6" fill="#1f2329"/>
+        <rect x="38" y="62" width="6" height="6" fill="#1f2329"/>
+        <rect x="50" y="62" width="6" height="6" fill="#1f2329"/>
+        <rect x="62" y="62" width="6" height="6" fill="#1f2329"/>
+        <rect x="70" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="82" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="94" y="38" width="6" height="6" fill="#1f2329"/>
+        <rect x="76" y="44" width="6" height="6" fill="#1f2329"/>
+        <rect x="88" y="44" width="6" height="6" fill="#1f2329"/>
+        <rect x="70" y="50" width="6" height="6" fill="#1f2329"/>
+        <rect x="82" y="50" width="6" height="6" fill="#1f2329"/>
+        <rect x="94" y="50" width="6" height="6" fill="#1f2329"/>
+        <rect x="76" y="56" width="6" height="6" fill="#1f2329"/>
+        <rect x="88" y="56" width="6" height="6" fill="#1f2329"/>
+        <rect x="70" y="62" width="6" height="6" fill="#1f2329"/>
+        <rect x="82" y="62" width="6" height="6" fill="#1f2329"/>
+        <rect x="94" y="62" width="6" height="6" fill="#1f2329"/>
+        <rect x="38" y="70" width="6" height="6" fill="#1f2329"/>
+        <rect x="50" y="70" width="6" height="6" fill="#1f2329"/>
+        <rect x="62" y="70" width="6" height="6" fill="#1f2329"/>
+        <rect x="44" y="82" width="6" height="6" fill="#1f2329"/>
+        <rect x="56" y="82" width="6" height="6" fill="#1f2329"/>
+        <rect x="38" y="88" width="6" height="6" fill="#1f2329"/>
+        <rect x="50" y="88" width="6" height="6" fill="#1f2329"/>
+        <rect x="62" y="88" width="6" height="6" fill="#1f2329"/>
+        <rect x="70" y="70" width="6" height="6" fill="#1f2329"/>
+        <rect x="82" y="70" width="6" height="6" fill="#1f2329"/>
+        <rect x="94" y="70" width="6" height="6" fill="#1f2329"/>
+        <rect x="76" y="76" width="6" height="6" fill="#1f2329"/>
+        <rect x="88" y="76" width="6" height="6" fill="#1f2329"/>
+        <rect x="70" y="82" width="6" height="6" fill="#1f2329"/>
+        <rect x="82" y="82" width="6" height="6" fill="#1f2329"/>
+        <rect x="94" y="82" width="6" height="6" fill="#1f2329"/>
+        <rect x="76" y="88" width="6" height="6" fill="#1f2329"/>
+        <rect x="88" y="88" width="6" height="6" fill="#1f2329"/>
+        <rect x="94" y="94" width="6" height="6" fill="#1f2329"/>
+        <rect x="70" y="94" width="6" height="6" fill="#1f2329"/>
+        <rect x="82" y="94" width="6" height="6" fill="#1f2329"/>
+      </svg>
+    `);
 
   return (
     <main className="min-h-screen w-full bg-white">
@@ -275,186 +283,81 @@ export default function LibraryPage() {
         </div>
       </section>
 
-      {/* ============ SECTION 3 — BORROWING, BOOKING, TOUR WITH ALI ============ */}
+      {/* ============ SECTION 3 — BORROWING & BOOKING ============ */}
       <section
         className="relative w-full py-24"
         style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f1f7e4 40%, #c3de92 78%, #8cc152 100%)" }}
       >
-        <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
-          <div className="grid w-full items-start gap-12 md:grid-cols-[1.15fr_1fr] md:gap-16">
+        <div className="mx-auto w-full max-w-5xl px-6 sm:px-10 md:px-12">
+          <div className="grid w-full items-stretch gap-8 md:grid-cols-2 md:gap-10">
 
-            <div className="space-y-8">
-
-              {/* Borrowing Card - Title, then Row (Image Left, Text Right) */}
-              <div className="rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-12 md:py-12" style={{ background: YELLOW }}>
-                <h3 className={`${plexMono.className} mb-6 text-center text-3xl font-bold text-black md:text-4xl`}>Borrowing</h3>
-                <div className="flex flex-row items-center justify-center gap-6 md:gap-8">
-                  <div className="relative w-24 h-24 md:w-36 md:h-36 shrink-0 drop-shadow-md">
-                    <Image src="/images/library/book.png" alt="Book" fill sizes="(max-width: 768px) 96px, 144px" className="object-contain" />
-                  </div>
-                  <p className={`${plexMono.className} text-sm leading-relaxed text-black md:text-lg`}>
-                    Fusce euismod et neque a interdum. Aliquam et feugiat nunc. Vestibulum eu turpis felis.
-                  </p>
+            {/* Borrowing Card */}
+            <div className="flex flex-col rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-10 md:py-12" style={{ background: YELLOW }}>
+              <h3 className={`${plexMono.className} mb-8 text-center text-3xl font-bold text-black md:text-4xl`}>Borrowing</h3>
+              <div className="flex flex-1 flex-row items-center justify-center gap-6 md:gap-8">
+                <div className="relative w-24 h-24 md:w-32 md:h-32 shrink-0 drop-shadow-md">
+                  <Image src="/images/library/book.png" alt="Book" fill sizes="(max-width: 768px) 96px, 128px" className="object-contain" />
                 </div>
+                <p className={`${plexMono.className} text-sm leading-relaxed text-black md:text-base`}>
+                  Fusce euismod et neque a interdum. Aliquam et feugiat nunc. Vestibulum eu turpis felis.
+                </p>
               </div>
-
-              {/* Booking Card - Title, then Row (Text Left, Image Right) */}
-              <div className="rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-12 md:py-12" style={{ background: YELLOW }}>
-                <h3 className={`${plexMono.className} mb-6 text-center text-3xl font-bold text-black md:text-4xl`}>Booking</h3>
-                <div className="flex flex-row items-center justify-center gap-6 md:gap-8">
-                  <p className={`${plexMono.className} text-sm leading-relaxed text-black md:text-lg`}>
-                    Sed aliquet porta rutrum. Nunc pretium, enim quis sodales lacinia, nisi quam placerat ligula.
-                  </p>
-                  <div className="relative w-24 h-24 md:w-36 md:h-36 shrink-0 drop-shadow-md">
-                    <Image src="/images/library/qr.png" alt="QR Code" fill sizes="(max-width: 768px) 96px, 144px" className="object-contain" />
-                  </div>
-                </div>
-              </div>
-
             </div>
 
-            <div>
-              <div className="flex items-center gap-4 mb-5">
-                <BlueHeading fontClass={sifonn.className} className="text-[clamp(2rem,4.5vw,3.25rem)]">
+            {/* Booking Card */}
+            <div className="flex flex-col rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-10 md:py-12" style={{ background: YELLOW }}>
+              <h3 className={`${plexMono.className} mb-8 text-center text-3xl font-bold text-black md:text-4xl`}>Booking</h3>
+              <div className="flex flex-1 flex-row items-center justify-center gap-6 md:gap-8">
+                <p className={`${plexMono.className} text-sm leading-relaxed text-black md:text-base`}>
+                  Sed aliquet porta rutrum. Nunc pretium, enim quis sodales lacinia, nisi quam placerat ligula.
+                </p>
+                <div className="relative w-24 h-24 md:w-32 md:h-32 shrink-0 drop-shadow-md">
+                  <Image src={dummyQr} alt="QR Code" fill sizes="(max-width: 768px) 96px, 128px" className="object-contain" unoptimized />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ============ SECTION 4 — TOUR WITH ALI (BOTTOM, LARGE) ============ */}
+      <section
+        className="relative w-full py-24"
+        style={{ background: "linear-gradient(to bottom, #8cc152 0%, #8cc152 100%)" }}
+      >
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
+
+          {/* Heading row — aligned to frame edges, sits right above the frame */}
+          <div className="mx-auto w-full max-w-5xl">
+            <div className="mb-2 flex items-end justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <BlueHeading fontClass={sifonn.className} className="text-[clamp(2rem,4.5vw,3.75rem)]">
                   Tour with Ali
                 </BlueHeading>
-                <div className="relative w-12 h-12 md:w-16 md:h-16 shrink-0">
+                <div className="relative w-14 h-14 md:w-20 md:h-20 shrink-0">
                   <Image
                     src="/images/library/libraryArrow.png"
                     alt="Arrow"
                     fill
-                    sizes="64px"
+                    sizes="80px"
                     className="object-contain"
                   />
                 </div>
               </div>
 
-              {/* ---- Video frame (TV style, fullscreen on play) ---- */}
-              <div className="rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)]">
-                <div
-                  ref={videoFrameRef}
-                  data-video-frame
-                  className="group relative aspect-video border-[5px] border-[#1f2329] bg-black overflow-hidden"
-                >
-                  <video
-                    ref={videoRef}
-                    className="absolute inset-0 h-full w-full object-cover"
-                    src="/videos/D.mp4"
-                    playsInline
-                    preload="metadata"
-                    onClick={togglePlay}
-                    onPlay={() => setPlaying(true)}
-                    onPause={() => setPlaying(false)}
-                    onEnded={() => {
-                      setPlaying(false);
-                      setProgress(0);
-                      if (document.fullscreenElement) {
-                        void document.exitFullscreen();
-                      }
-                    }}
-                    onTimeUpdate={handleTimeUpdate}
-                  />
-
-                  {/* Custom play overlay (hidden while playing) */}
-                  {!playing && (
-                    <button
-                      type="button"
-                      onClick={togglePlay}
-                      aria-label="Play tour video in fullscreen"
-                      className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 hover:bg-black/30"
-                    >
-                      <span
-                        className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-full border-[4px] border-[#1f2329] shadow-[4px_5px_0_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-105"
-                        style={{ background: YELLOW }}
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="h-7 w-7 md:h-9 md:w-9 translate-x-[2px]"
-                          fill="#1f2329"
-                          aria-hidden="true"
-                        >
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </span>
-                    </button>
-                  )}
-
-                  {/* Controls (shown while playing) */}
-                  {playing && (
-                    <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
-                      {/* Pause */}
-                      <button
-                        type="button"
-                        onClick={togglePlay}
-                        aria-label="Pause tour video"
-                        className="flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
-                        style={{ background: YELLOW }}
-                      >
-                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
-                          <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
-                        </svg>
-                      </button>
-
-                      {/* Fullscreen toggle */}
-                      <button
-                        type="button"
-                        onClick={toggleFullscreen}
-                        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
-                        style={{ background: YELLOW }}
-                      >
-                        {isFullscreen ? (
-                          /* Exit fullscreen icon */
-                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
-                            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
-                          </svg>
-                        ) : (
-                          /* Enter fullscreen icon */
-                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
-                            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Fullscreen toggle in the play overlay (top-right corner) */}
-                  {!playing && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void toggleFullscreen();
-                      }}
-                      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                      className="absolute top-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
-                      style={{ background: YELLOW }}
-                    >
-                      {isFullscreen ? (
-                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
-                          <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
-                        </svg>
-                      ) : (
-                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
-                          <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-                        </svg>
-                      )}
-                    </button>
-                  )}
-
-                  {/* Progress bar */}
-                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-1.5 bg-black/40">
-                    <div
-                      className="h-full transition-[width] duration-150 ease-linear"
-                      style={{ width: `${progress}%`, background: YELLOW }}
-                    />
-                  </div>
-                </div>
-              </div>
-              {/* ---- End video frame ---- */}
+              {/* Back to Campus Map button — top right, aligned with heading bottom edge */}
+              <Link
+                href="/map"
+                className={`${plexMono.className} mb-2 shrink-0 border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+              >
+                Back to Campus Map
+              </Link>
             </div>
-
           </div>
+
+          <VideoFrame src="/videos/D.mp4" />
+
         </div>
       </section>
 

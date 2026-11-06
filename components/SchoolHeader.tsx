@@ -13,7 +13,7 @@ export default function SchoolHeader() {
         {/* Seal kept at original h-10 to fit the h-16 container */}
         <div className="relative h-10 w-10 shrink-0">
           <Image
-            src="/images/Seal.png"
+            src="/images/main/seal.png"
             alt="USF Seal"
             fill
             sizes="40px"

@@ -3,7 +3,9 @@
 import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
+import Link from "next/link";
 import SchoolHeader from "@/components/SchoolHeader";
+import VideoFrame from "@/components/VideoFrame";
 
 const sifonn = localFont({
   src: "../../fonts/Sifonn.otf",
@@ -121,17 +123,17 @@ export default function ClassroomsPage() {
               {/* CLUSTER B - Top Right */}
               <div className="absolute -top-8 -right-8 w-32 h-32 pointer-events-none z-20">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 anim-path-3">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(0_0_2px_#000)]">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
                     <Image src="/images/shapes/noodle1.png" alt="Noodle shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute bottom-0 left-0 anim-path-1">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(0_0_2px_#000)]">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#ffeaa6)_drop-shadow(-1.5px_0_0_#ffeaa6)_drop-shadow(0_1.5px_0_#ffeaa6)_drop-shadow(0_-1.5px_0_#ffeaa6)]">
                     <Image src="/images/shapes/fita2.png" alt="Fita shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute bottom-0 right-0 anim-path-2">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(0_0_2px_#000)]">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
                     <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
@@ -140,17 +142,17 @@ export default function ClassroomsPage() {
               {/* CLUSTER A - Bottom Left */}
               <div className="absolute -bottom-8 -left-8 w-32 h-32 pointer-events-none z-20">
                 <div className="absolute top-0 left-0 anim-path-2">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(0_0_2px_#000)]">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#ffeaa6)_drop-shadow(-1.5px_0_0_#ffeaa6)_drop-shadow(0_1.5px_0_#ffeaa6)_drop-shadow(0_-1.5px_0_#ffeaa6)]">
                     <Image src="/images/shapes/noodle2.png" alt="Noodle shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute top-0 right-0 anim-path-3">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(0_0_2px_#000)]">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
                     <Image src="/images/shapes/fita1.png" alt="Fita shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 anim-path-1">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(0_0_2px_#000)]">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
                     <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
@@ -175,7 +177,6 @@ export default function ClassroomsPage() {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-8 md:gap-12 items-start">
             
             <div className="flex flex-col gap-4">
-              {/* Removed the frame container (border, rounded, shadow, aspect-ratio) */}
               <div className="relative w-full drop-shadow-lg">
                 <Image
                   src="/images/classrooms/bonsai.png"
@@ -205,67 +206,91 @@ export default function ClassroomsPage() {
         </div>
       </section>
 
-      {/* ============ SECTION 3 — GUIDELINES + TOUR WITH ALI ============ */}
+      {/* ============ SECTION 3 — BASIC GUIDELINES ============ */}
       <section
         id="services"
-        className="relative w-full pt-24 pb-12"
+        className="relative w-full py-24"
         style={{ background: "linear-gradient(to bottom, #ffffff 0%, #fff3f2 45%, #ffd0cd 78%, #ff8f8f 100%)" }}
       >
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
-          <div className="grid w-full items-start gap-12 md:grid-cols-[1.15fr_1fr] md:gap-16">
-            
-            {/* Basic Guidelines */}
-            <div className="space-y-8">
-              <div 
-                className="rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-12 md:py-12" 
-                style={{ background: YELLOW }}
-              >
-                <h3 className={`${plexMono.className} mb-8 text-center text-3xl font-bold text-black md:text-4xl`}>
-                  Basic Guidelines
-                </h3>
-                
-                <div className="flex flex-col items-center gap-6">
-                  <div className="relative w-full max-w-[300px] aspect-[4/3]">
-                    <Image
-                      src="/images/classrooms/i.png"
-                      alt="Guidelines"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 300px"
-                      className="object-contain"
-                    />
-                  </div>
-                  
-                  <p className={`${plexMono.className} text-sm md:text-base leading-relaxed text-black text-center`}>
-                    Vestibulum eu turpis felis. In hac habitasse platea dictumst. Cras ac massa vulputate.
-                  </p>
-                </div>
-              </div>
+        <div className="relative z-10 mx-auto w-full max-w-3xl px-6 sm:px-10 md:px-12">
+
+          <div 
+            className="relative overflow-hidden rounded-[2rem] border-[5px] border-black px-8 py-12 shadow-[10px_12px_0_rgba(0,0,0,0.25)] md:px-14 md:py-14" 
+            style={{ background: YELLOW }}
+          >
+            {/* Decorative corner dots */}
+            <div className="absolute top-4 left-4 flex gap-1.5">
+              <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#ff7f7f" }} />
+              <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#ffeaa6" }} />
+              <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#a6c978" }} />
+            </div>
+            <div className="absolute top-4 right-4 flex gap-1.5">
+              <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#a6c978" }} />
+              <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#ffeaa6" }} />
+              <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#ff7f7f" }} />
             </div>
 
-            {/* Tour with Ali */}
-            <div className="flex flex-col mt-4 md:mt-0">
+            <h3 className={`${plexMono.className} mb-10 text-center text-3xl font-bold text-black md:text-4xl`}>
+              Basic Guidelines
+            </h3>
+            
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative w-full max-w-[300px] aspect-[4/3]">
+                <Image
+                  src="/images/classrooms/i.png"
+                  alt="Guidelines"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 300px"
+                  className="object-contain"
+                />
+              </div>
               
-              <div className="flex items-center gap-4 mb-5">
-                <CreamHeading fontClass={sifonn.className} className="text-[clamp(2rem,4.5vw,3.25rem)]">
+              <p className={`${plexMono.className} text-sm md:text-base leading-relaxed text-black text-center max-w-md mx-auto`}>
+                Vestibulum eu turpis felis. In hac habitasse platea dictumst. Cras ac massa vulputate.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ============ SECTION 4 — TOUR WITH ALI (BOTTOM) ============ */}
+      <section
+        className="relative w-full py-24"
+        style={{ background: "linear-gradient(to bottom, #ff8f8f 0%, #ff8f8f 100%)" }}
+      >
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
+
+          {/* Heading row — aligned to frame edges, sits right above the frame */}
+          <div className="mx-auto w-full max-w-5xl">
+            <div className="mb-2 flex items-end justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <CreamHeading fontClass={sifonn.className} className="text-[clamp(2rem,4.5vw,3.75rem)]">
                   Tour with Ali
                 </CreamHeading>
-                <div className="relative w-12 h-12 md:w-16 md:h-16 shrink-0">
+                <div className="relative w-14 h-14 md:w-20 md:h-20 shrink-0">
                   <Image
                     src="/images/library/libraryArrow.png"
                     alt="Arrow"
                     fill
-                    sizes="64px"
+                    sizes="80px"
                     className="object-contain"
                   />
                 </div>
               </div>
-              
-              <div className="aspect-video w-full rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)] flex flex-col">
-                <div className="flex-1 border-[5px] border-[#1f2329] bg-white" />
-              </div>
-            </div>
 
+              {/* Back to Campus Map button — top right, aligned with heading bottom edge */}
+              <Link
+                href="/map"
+                className={`${plexMono.className} mb-2 shrink-0 border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+              >
+                Back to Campus Map
+              </Link>
+            </div>
           </div>
+
+          <VideoFrame src="/videos/D.mp4" />
+
         </div>
       </section>
 
