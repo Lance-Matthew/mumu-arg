@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import SchoolHeader from "@/components/SchoolHeader";
@@ -25,6 +25,10 @@ const plexMonoRegular = IBM_Plex_Mono({
 });
 
 const extrude = Array.from({ length: 18 }, (_, i) => `${((i + 1) * 0.0161).toFixed(4)}em ${((i + 1) * 0.0161).toFixed(4)}em 0 #000`).join(", ");
+
+// Cloudflare Stream iframe embed
+const TV_VIDEO_EMBED =
+  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/36b33cf2706c82f345d13256059dba82/iframe?poster=https%3A%2F%2Fcustomer-eie2vf4vq58r59xg.cloudflarestream.com%2F36b33cf2706c82f345d13256059dba82%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600";
 
 function GridFloor() {
   const W = 1210;
@@ -196,8 +200,6 @@ function InlineHamburger() {
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const tvVideoRef = useRef<HTMLVideoElement>(null);
-  const [tvPlaying, setTvPlaying] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -216,16 +218,6 @@ export default function Home() {
 
     return () => observer.disconnect();
   }, []);
-
-  const toggleTvPlay = () => {
-    const v = tvVideoRef.current;
-    if (!v) return;
-    if (v.paused) {
-      void v.play();
-    } else {
-      v.pause();
-    }
-  };
 
   return (
     <main ref={containerRef} className="no-scrollbar h-[100svh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth bg-[#fafaf8]">
@@ -461,7 +453,7 @@ export default function Home() {
         >
           <span className="font-mono text-base font-bold tracking-widest sm:text-lg">continue</span>
           <div className="relative h-[40px] w-[48px] sm:h-[60px] sm:w-[68px] animate-bounce transition-transform duration-200 group-hover:scale-110">
-            <Image src="/images/main/downArrow.png" alt="" fill sizes="68px" className="object-contain" />
+            <Image src="/images/main/downArrow.png" alt="" fill sizes="68px" className="object-contain" unoptimized />
           </div>
         </button>
       </section>
@@ -473,7 +465,6 @@ export default function Home() {
       >
         <GridFloor />
 
-        {/* Shapes - Scaled and positioned for mobile/desktop */}
         <div className="absolute top-24 right-4 z-20 h-[100px] w-[100px] origin-top-right scale-[0.6] sm:top-32 sm:right-12 sm:h-[140px] sm:w-[140px] sm:scale-[0.8] md:top-40 md:h-[180px] md:w-[180px] md:scale-100">
           <div className="absolute top-20 right-60 anim-path-2 sm:right-70">
             <div className="relative h-8 w-8 anim-wiggle-1 sm:h-10 sm:w-10 md:h-[48px] md:w-[48px] [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
@@ -522,7 +513,7 @@ export default function Home() {
         >
           <span className="font-mono text-base font-bold tracking-widest sm:text-lg">continue</span>
           <div className="relative h-[40px] w-[48px] sm:h-[60px] sm:w-[68px] animate-bounce transition-transform duration-200 group-hover:scale-110">
-            <Image src="/images/downArrow.png" alt="" fill sizes="68px" className="object-contain" />
+            <Image src="/images/downArrow.png" alt="" fill sizes="68px" className="object-contain" unoptimized />
           </div>
         </button>
       </section>
@@ -534,10 +525,9 @@ export default function Home() {
       >
         <BottomLines />
 
-        {/* Wrapper shifted right on desktop, centered on mobile */}
         <div className="relative flex flex-1 flex-col md:left-[5%] md:w-[95%]">
 
-          {/* CLUSTER A (Top Left) - Hidden on mobile to avoid text overlap */}
+          {/* CLUSTER A */}
           <div className="hidden sm:block absolute top-[17%] left-[6%] z-20 pointer-events-none anim-path-2 rotate-[10deg]">
             <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
               <Image src="/images/shapes/dorito.png" alt="" fill sizes="56px" className="object-contain" />
@@ -554,7 +544,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* CLUSTER B (Bottom Middle) - Hidden on mobile */}
+          {/* CLUSTER B */}
           <div className="hidden sm:block absolute bottom-[19%] left-[38%] z-20 pointer-events-none anim-path-2 rotate-[-30deg]">
             <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
               <Image src="/images/shapes/dorito.png" alt="" fill sizes="56px" className="object-contain" />
@@ -574,12 +564,10 @@ export default function Home() {
           <div className="relative z-10 flex flex-1 items-center px-6 pb-10 pt-24 sm:px-10">
             <div className="mx-auto grid w-full max-w-7xl items-center gap-8 md:grid-cols-[1fr_1.5fr] md:gap-12">
 
-              {/* Left Column: Retro handheld-style TV frame — whole unit scaled up, frame design unchanged */}
-              <div className="relative flex w-full items-center justify-center md:justify-start">
+              {/* Left Column: Retro TV frame with iframe */}
+              <div className="relative flex w-full items-center justify-center md:justify-start md:-translate-x-[100px]">
                 <div className="w-full max-w-md md:max-w-lg">
-                  {/* Scale wrapper enlarges shell + screen + video + antenna + dots + button together */}
                   <div className="tv-scale-wrap">
-                    {/* Antenna sits above the shell */}
                     <div className="relative">
                       <div className="tv-antenna" aria-hidden="true">
                         <span className="tv-antenna__base" />
@@ -591,62 +579,20 @@ export default function Home() {
                         </span>
                       </div>
 
-                      {/* Outer handheld-style shell (same proportions as before) */}
                       <div className="handheld-tv p-5 md:p-6">
-                        {/* Bezel */}
                         <div className="handheld-tv__bezel p-3 md:p-4">
-                          {/* Screen */}
                           <div className="handheld-tv__screen aspect-video bg-black">
-                            <video
-                              ref={tvVideoRef}
-                              className="crt-video absolute inset-0 h-full w-full object-cover"
-                              src="/videos/A.mp4"
-                              playsInline
-                              preload="metadata"
-                              onClick={toggleTvPlay}
-                              onPlay={() => setTvPlaying(true)}
-                              onPause={() => setTvPlaying(false)}
-                              onEnded={() => setTvPlaying(false)}
+                            <iframe
+                              src={TV_VIDEO_EMBED}
+                              title="Tour video"
+                              loading="lazy"
+                              className="crt-video absolute inset-0 h-full w-full border-0"
+                              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                              allowFullScreen
                             />
-
-                            {/* Play overlay (hidden while playing) */}
-                            {!tvPlaying && (
-                              <button
-                                type="button"
-                                onClick={toggleTvPlay}
-                                aria-label="Play video"
-                                className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 hover:bg-black/30"
-                              >
-                                <span className="flex h-16 w-16 items-center justify-center rounded-full border-[4px] border-[#1f2329] bg-[#ffe793] shadow-[4px_5px_0_rgba(0,0,0,0.45)] transition-transform duration-200 hover:scale-105 md:h-20 md:w-20">
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    className="h-7 w-7 translate-x-[2px] md:h-9 md:w-9"
-                                    fill="#1f2329"
-                                    aria-hidden="true"
-                                  >
-                                    <path d="M8 5v14l11-7z" />
-                                  </svg>
-                                </span>
-                              </button>
-                            )}
-
-                            {/* Pause button while playing */}
-                            {tvPlaying && (
-                              <button
-                                type="button"
-                                onClick={toggleTvPlay}
-                                aria-label="Pause video"
-                                className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#1f2329] bg-[#ffe793] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
-                              >
-                                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1f2329" aria-hidden="true">
-                                  <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
-                                </svg>
-                              </button>
-                            )}
                           </div>
                         </div>
 
-                        {/* Bottom detail row: LED dots (red, yellow, blue) + push button */}
                         <div className="mt-3 flex items-center justify-between px-1">
                           <div className="flex items-center gap-2">
                             <span className="tv-led tv-led--red" aria-hidden="true" />
@@ -662,7 +608,7 @@ export default function Home() {
               </div>
 
               {/* Right Column: Text */}
-              <div className="min-w-0 slide-up-anim w-full mt-16 md:mt-0" style={{ containerType: "inline-size" }}>
+              <div className="min-w-0 slide-up-anim w-full mt-16 md:mt-0 md:translate-x-[10%]" style={{ containerType: "inline-size" }}>
                 <div className="origin-center md:origin-left scale-[1.2] mb-6 md:mb-10 text-center md:text-left flex justify-center md:justify-start">
                   <AdventureHeading fontClass={sifonn.className} />
                 </div>
@@ -679,7 +625,7 @@ export default function Home() {
                 <div className="mt-8 flex justify-center md:mt-10">
                   <Link
                     href="/map"
-                    className={`${plexMonoRegular.className} inline-block border-[3px] border-black bg-[#c9c9c9] px-8 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+                    className={`${plexMonoRegular.className} inline-block border-[3px] border-black bg-[#c9c9c9] px-12 py-3 text-[clamp(1rem,1.8vw,1.25rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
                   >
                     Begin Tour
                   </Link>
