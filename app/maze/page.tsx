@@ -63,8 +63,9 @@ const YELLOW_POLYGON: Point[] = [
   { x: 826, y: 98 },
 ];
 
-// Starting position shifted 5px to the right (was 588, now 593)
-const START: Point = { x: 593, y: 375 };
+// Starting position. The corridor here spans x = 572..592, so x must stay near its middle (582)
+// or the player starts partly inside the wall and trips the 5% rule.
+const START: Point = { x: 584, y: 375 };
 const EXIT_1 = { x: 849, y: 90 };   // Top-right → /ending/gray
 const EXIT_2 = { x: 333, y: 603 };  // Bottom-left edge → /ending/red
 
@@ -74,7 +75,7 @@ const PLAYER_RADIUS = 7.2;
 const PLAYING_RADIUS = 5;
 const PATH_COLLISION_PADDING = 0;
 // Jumpscare triggers only when MORE than 5% of the player is touching the wall
-const WALL_HIT_OUTSIDE_RATIO = 0.05;
+const WALL_HIT_OUTSIDE_RATIO = 0.10;
 const COLLISION_SAMPLES = 40;
 const FLASH_DURATION_MS = 500;
 
@@ -86,6 +87,11 @@ const IMG_DIR = "/images/maze";
 const GATE_SRC = `${IMG_DIR}/mazeGate.png`;
 const GATE_HEIGHT = 70;
 const GATE_ROTATION = Math.PI / 2;
+// Gates sit just past the end of the path, like the top-right one (path ends at x = 826, gate at 849 => 23px gap)
+const GATE_GAP = 23;
+const GATE_1 = { x: EXIT_1.x, y: EXIT_1.y };
+// Bottom-left: path strip runs y 566..603 and ends at x = 333, so center the gate on the strip and push it 23px past the end
+const GATE_2 = { x: 333 - GATE_GAP, y: 585 };
 
 const TOP_TEXT_START = "Click this icon to start";
 const TOP_TEXT_RETRY = "Click this icon to try again";
@@ -108,8 +114,7 @@ const WALL_THICKNESS = 14;
 
 const WALLS: Segment[] = [
   [74, 34, 74, 414],
-  [74, 34, 244, 34],
-  [321, 34, 484, 34],
+  [74, 34, 484, 34],
   [74, 142, 229, 142],
   [229, 34, 229, 142],
   [74, 246, 207, 246],
@@ -121,8 +126,7 @@ const WALLS: Segment[] = [
   [349, 306, 489, 306],
   [489, 136, 489, 509],
   [349, 306, 349, 509],
-  [74, 509, 244, 509],
-  [321, 509, 489, 509],
+  [74, 509, 489, 509],
 ];
 
 const DOOR_DASHES: Segment[] = [
@@ -147,11 +151,11 @@ type Room = {
 };
 
 const ROOMS: Room[] = [
-  { id: 1, src: `${IMG_DIR}/1.png`, label: "1.Library", labelAt: { x: 415, y: 379 }, boxAt: { x: 417, y: 413 } },
-  { id: 2, src: `${IMG_DIR}/2.png`, label: "2.Sports Center", labelAt: { x: 148, y: 58 }, boxAt: { x: 148, y: 98 } },
-  { id: 3, src: `${IMG_DIR}/3.png`, label: "3.Theater", labelAt: { x: 138, y: 166 }, boxAt: { x: 138, y: 205 } },
-  { id: 4, src: `${IMG_DIR}/4.png`, label: "4.Labs", labelAt: { x: 117, y: 275 }, boxAt: { x: 118, y: 310 } },
-  { id: 5, src: `${IMG_DIR}/5.png`, label: "5.Classrooms", labelAt: { x: 430, y: 194 }, boxAt: { x: 432, y: 230 } },
+  { id: 1, src: `${IMG_DIR}/1.png`, label: "", labelAt: { x: 415, y: 379 }, boxAt: { x: 417, y: 413 } },
+  { id: 2, src: `${IMG_DIR}/2.png`, label: " ", labelAt: { x: 148, y: 58 }, boxAt: { x: 148, y: 98 } },
+  { id: 3, src: `${IMG_DIR}/3.png`, label: "", labelAt: { x: 138, y: 166 }, boxAt: { x: 138, y: 205 } },
+  { id: 4, src: `${IMG_DIR}/4.png`, label: "", labelAt: { x: 117, y: 275 }, boxAt: { x: 118, y: 310 } },
+  { id: 5, src: `${IMG_DIR}/5.png`, label: "", labelAt: { x: 430, y: 194 }, boxAt: { x: 432, y: 230 } },
 ];
 
 const PLACEHOLDER_SIZE = 50;
@@ -393,8 +397,12 @@ function drawImageAnchored(
 export default function MazePage() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
   const collisionLockRef = useRef(false);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
+  // Offset between where the player starts (START) and where the real mouse was when clicked,
+  // so the player begins exactly on the blinking spot and then moves relative to the mouse.
+  const startOffsetRef = useRef<Point>({ x: 0, y: 0 });
 
   const [started, setStarted] = useState(false);
   const [cursor, setCursor] = useState<Point>(START);
@@ -410,8 +418,34 @@ export default function MazePage() {
     setAaliyahFlash(false);
     setCursor(START);
     setHasRetried(false);
+    startOffsetRef.current = { x: 0, y: 0 };
     collisionLockRef.current = false;
   }, []);
+
+  const startGame = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.MouseEvent<HTMLButtonElement>
+  ) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const toCanvas = (clientX: number, clientY: number): Point => ({
+      x: ((clientX - rect.left) / rect.width) * CANVAS_W,
+      y: ((clientY - rect.top) / rect.height) * CANVAS_H,
+    });
+    const mouse = toCanvas(e.clientX, e.clientY);
+
+    // Start exactly where the pulsing icon is on screen (its real rendered center)
+    let startPos: Point = START;
+    const btn = startButtonRef.current;
+    if (btn) {
+      const b = btn.getBoundingClientRect();
+      startPos = toCanvas(b.left + b.width / 2, b.top + b.height / 2);
+    }
+
+    startOffsetRef.current = { x: startPos.x - mouse.x, y: startPos.y - mouse.y };
+    setCursor(startPos);
+    setStarted(true);
+  };
 
   const triggerWallHit = useCallback(() => {
     if (collisionLockRef.current) return;
@@ -523,8 +557,8 @@ export default function MazePage() {
 
     const gate = imagesRef.current.gate;
     if (gate) {
-      drawImageAnchored(ctx, gate, EXIT_1.x, EXIT_1.y, GATE_HEIGHT, 0.5, 0.5, GATE_ROTATION);
-      drawImageAnchored(ctx, gate, EXIT_2.x, EXIT_2.y, GATE_HEIGHT, 0.5, 0.5, GATE_ROTATION);
+      drawImageAnchored(ctx, gate, GATE_1.x, GATE_1.y, GATE_HEIGHT, 0.5, 0.5, GATE_ROTATION);
+      drawImageAnchored(ctx, gate, GATE_2.x, GATE_2.y, GATE_HEIGHT, 0.5, 0.5, GATE_ROTATION);
     }
 
     if (started) {
@@ -559,7 +593,7 @@ export default function MazePage() {
     const p = getCanvasPoint(e);
 
     if (!started && Math.hypot(p.x - START.x, p.y - START.y) < 45) {
-      setStarted(true);
+      startGame(e);
     }
   };
 
@@ -568,7 +602,11 @@ export default function MazePage() {
   ) => {
     if (!started || ending || aaliyahFlash) return;
 
-    const p = getCanvasPoint(e);
+    const raw = getCanvasPoint(e);
+    const p = {
+      x: raw.x + startOffsetRef.current.x,
+      y: raw.y + startOffsetRef.current.y,
+    };
 
     if (isWallCollision(p.x, p.y)) {
       triggerWallHit();
@@ -638,9 +676,10 @@ export default function MazePage() {
 
         {!started && !ending && !aaliyahFlash && (
           <button
+            ref={startButtonRef}
             type="button"
             aria-label="Click the cursor to start"
-            onClick={() => setStarted(true)}
+            onClick={startGame}
             style={{
               left: `${(START.x / CANVAS_W) * 100}%`,
               top: `${(START.y / CANVAS_H) * 100}%`,
@@ -649,10 +688,13 @@ export default function MazePage() {
               aspectRatio: "1 / 1",
               animation: "mazeCursorPulse 1.2s ease-in-out infinite",
               transformOrigin: "center center",
+              // The pulse animation already centers the button on START via translate(-50%, -50%).
+              // Make sure no other translate stacks on top of it (that was shifting it left/up).
+              translate: "none",
               "--tip-x": "-50%",
               "--tip-y": "-50%",
             } as React.CSSProperties}
-            className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer border-0 bg-transparent p-0"
+            className="absolute z-10 cursor-pointer border-0 bg-transparent p-0"
           >
             <div className="h-full w-full rounded-full border-[3px] border-[#ff0033] bg-black" />
           </button>
