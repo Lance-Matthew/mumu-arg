@@ -1,37 +1,26 @@
 "use client";
 
-import { useId, type CSSProperties, type ReactNode } from "react";
+import { useId, useRef, useState, useEffect, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-/* ==========================================
-   ASSETS  (public/images/maze)
-   ========================================== */
 const IMG_DIR = "/images/maze";
 const CURSOR_SRC = `${IMG_DIR}/mazeCursor.png`;
 const GATE_SRC = `${IMG_DIR}/mazeGate.png`;
+const BGM_SRC = "/audio/handheldBGM.mp3";
 
-/* ==========================================
-   COLORS
-   ========================================== */
 const COLORS = {
   screen: "#2c4e8a",
-  wall: "#88a65a", // light olive walls
-  path: "#6a8f19", // darker green path + door connectors
+  wall: "#88a65a",
+  path: "#6a8f19",
   decor: "#88a65a",
   text: "#ffffff",
   ring: "#ffeb99",
 };
 
-/* ==========================================
-   MAP GEOMETRY  (SVG user units)
-   ========================================== */
 type Point = { x: number; y: number };
 type Segment = [x1: number, y1: number, x2: number, y2: number];
 
-// Visible area of the map screen
 const VB = { x: 245, y: -62, w: 655, h: 780 };
-
-// Reference map (568x528) -> map units
 const REF = { sx: 1.194, sy: 1.27, ox: 241, oy: -8 };
 const toMap = (x: number, y: number): Point => ({
   x: x * REF.sx + REF.ox,
@@ -39,55 +28,22 @@ const toMap = (x: number, y: number): Point => ({
 });
 
 const PATH_POLYGON: Point[] = [
-  { x: 826, y: 84 },
-  { x: 744, y: 84 },
-  { x: 744, y: 109 },
-  { x: 621, y: 109 },
-  { x: 621, y: 244 },
-  { x: 524, y: 244 },
-  { x: 524, y: 341 },
-  { x: 572, y: 341 },
-  { x: 572, y: 415 },
-  { x: 492, y: 415 },
-  { x: 492, y: 491 },
-  { x: 416, y: 492 },
-  { x: 416, y: 565 },
-  { x: 333, y: 566 },
-  { x: 333, y: 603 },
-  { x: 444, y: 603 },
-  { x: 444, y: 528 },
-  { x: 517, y: 527 },
-  { x: 517, y: 431 },
-  { x: 592, y: 430 },
-  { x: 592, y: 326 },
-  { x: 543, y: 326 },
-  { x: 543, y: 259 },
-  { x: 635, y: 259 },
-  { x: 634, y: 123 },
-  { x: 758, y: 123 },
-  { x: 758, y: 98 },
-  { x: 826, y: 98 },
+  { x: 826, y: 84 }, { x: 744, y: 84 }, { x: 744, y: 109 }, { x: 621, y: 109 },
+  { x: 621, y: 244 }, { x: 524, y: 244 }, { x: 524, y: 341 }, { x: 572, y: 341 },
+  { x: 572, y: 415 }, { x: 492, y: 415 }, { x: 492, y: 491 }, { x: 416, y: 492 },
+  { x: 416, y: 565 }, { x: 333, y: 566 }, { x: 333, y: 603 }, { x: 444, y: 603 },
+  { x: 444, y: 528 }, { x: 517, y: 527 }, { x: 517, y: 431 }, { x: 592, y: 430 },
+  { x: 592, y: 326 }, { x: 543, y: 326 }, { x: 543, y: 259 }, { x: 635, y: 259 },
+  { x: 634, y: 123 }, { x: 758, y: 123 }, { x: 758, y: 98 }, { x: 826, y: 98 },
 ];
 const PATH_POINTS = PATH_POLYGON.map((p) => `${p.x},${p.y}`).join(" ");
 
 const WALL_THICKNESS = 14;
 const WALLS: Segment[] = [
-  [74, 34, 74, 414],
-  [74, 34, 244, 34],
-  [321, 34, 484, 34],
-  [74, 142, 229, 142],
-  [229, 34, 229, 142],
-  [74, 246, 207, 246],
-  [207, 142, 207, 246],
-  [74, 366, 170, 366],
-  [170, 246, 170, 366],
-  [376, 154, 489, 154],
-  [376, 154, 376, 306],
-  [349, 306, 489, 306],
-  [489, 136, 489, 509],
-  [349, 306, 349, 509],
-  [74, 509, 244, 509],
-  [321, 509, 489, 509],
+  [74, 34, 74, 414], [74, 34, 244, 34], [321, 34, 484, 34], [74, 142, 229, 142],
+  [229, 34, 229, 142], [74, 246, 207, 246], [207, 142, 207, 246], [74, 366, 170, 366],
+  [170, 246, 170, 366], [376, 154, 489, 154], [376, 154, 376, 306], [349, 306, 489, 306],
+  [489, 136, 489, 509], [349, 306, 349, 509], [74, 509, 244, 509], [321, 509, 489, 509],
 ];
 const WALL_PATH = WALLS.map(([x1, y1, x2, y2]) => {
   const a = toMap(x1, y1);
@@ -97,13 +53,8 @@ const WALL_PATH = WALLS.map(([x1, y1, x2, y2]) => {
 
 const DOOR_THICKNESS = 14;
 const DOOR_LINES: Segment[] = [
-  [579, 40, 579, 250],
-  [514, 104, 579, 104],
-  [488, 252, 540, 252],
-  [690, 252, 625, 252],
-  [444, 379, 582, 379],
-  [579, 509, 579, 630],
-  [658, 509, 505, 509],
+  [579, 40, 579, 250], [514, 104, 579, 104], [488, 252, 540, 252], [690, 252, 625, 252],
+  [444, 379, 582, 379], [579, 509, 579, 630], [658, 509, 505, 509],
 ];
 
 const GATE_W = 78;
@@ -119,17 +70,8 @@ const PIN_TIP: Point = { x: 582, y: 375 };
 const PIN_W = 48;
 const PIN_H = 66;
 
-const GRASS: Point[] = [
-  { x: 693, y: 94 },
-  { x: 498, y: 346 },
-  { x: 594, y: 474 },
-];
-const DINING: Point[] = [
-  { x: 709, y: 143 },
-  { x: 781, y: 143 },
-  { x: 658, y: 343 },
-  { x: 367, y: 487 },
-];
+const GRASS: Point[] = [{ x: 693, y: 94 }, { x: 498, y: 346 }, { x: 594, y: 474 }];
+const DINING: Point[] = [{ x: 709, y: 143 }, { x: 781, y: 143 }, { x: 658, y: 343 }, { x: 367, y: 487 }];
 
 const TILE = 56;
 
@@ -175,6 +117,9 @@ type MapComponentProps = {
   onLocationClick?: (name: LocationName, href: string) => void;
   disabled?: boolean;
   pressedLocation?: LocationName;
+  hoverOnly?: LocationName;
+  forceHoverAll?: boolean;
+  muteForced?: boolean;
   overlay?: ReactNode;
   fontClassName?: string;
   className?: string;
@@ -185,6 +130,9 @@ export default function MapComponent({
   onLocationClick,
   disabled = false,
   pressedLocation,
+  hoverOnly,
+  forceHoverAll = false,
+  muteForced = false,
   overlay,
   fontClassName = "",
   className,
@@ -195,13 +143,60 @@ export default function MapComponent({
   const grassId = `${uid}-grass`;
   const diningId = `${uid}-dining`;
 
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const [bgmVolume, setBgmVolume] = useState(50);
+  const [isMuted, setIsMuted] = useState(true);
+
+  useEffect(() => {
+    const audio = new Audio(BGM_SRC);
+    audio.loop = true;
+    audio.volume = bgmVolume / 100;
+    audio.muted = isMuted;
+    bgmRef.current = audio;
+    audio.play().catch(() => {});
+
+    return () => {
+      audio.pause();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (bgmRef.current) bgmRef.current.volume = bgmVolume / 100;
+  }, [bgmVolume]);
+
+  useEffect(() => {
+    if (bgmRef.current) {
+      bgmRef.current.muted = isMuted;
+      if (!isMuted) bgmRef.current.play().catch(() => {});
+    }
+  }, [isMuted]);
+
+  // Pause during scary; don't auto-resume after muteForced ends.
+  useEffect(() => {
+    if (!bgmRef.current) return;
+    if (muteForced) bgmRef.current.pause();
+  }, [muteForced]);
+
+  const toggleMute = () => {
+    if (muteForced) return; // guard only — UI looks normal
+    setIsMuted((prev) => !prev);
+  };
+
   const activate = (name: LocationName, href: string) => {
     if (disabled) return;
+    if (bgmRef.current && !muteForced) {
+      if (bgmRef.current.muted) {
+        bgmRef.current.muted = false;
+        setIsMuted(false);
+      }
+      bgmRef.current.play().catch(() => {});
+    }
     if (onLocationClick) onLocationClick(name, href);
     else router.push(href);
   };
 
-  const textStyle: CSSProperties = { fontFamily: "monospace" };
+  const textStyle: CSSProperties = {};
 
   return (
     <div className={className} style={{ containerType: "inline-size", ...style }}>
@@ -214,10 +209,26 @@ export default function MapComponent({
           transition: transform 120ms ease-out, filter 120ms ease-out;
         }
         .mapc-ring { fill: none; stroke: ${COLORS.ring}; stroke-width: 3; opacity: 0; transition: opacity 120ms; }
+        
         .mapc-loc:hover .mapc-tile,
         .mapc-loc:focus-visible .mapc-tile { transform: scale(1.1); filter: brightness(1.12); }
         .mapc-loc:hover .mapc-ring,
         .mapc-loc:focus-visible .mapc-ring { opacity: 1; }
+
+        ${hoverOnly ? `
+          .mapc-loc[data-name="${hoverOnly}"]:hover .mapc-tile,
+          .mapc-loc[data-name="${hoverOnly}"]:focus-visible .mapc-tile { transform: scale(1.1); filter: brightness(1.12); }
+          .mapc-loc[data-name="${hoverOnly}"]:hover .mapc-ring,
+          .mapc-loc[data-name="${hoverOnly}"]:focus-visible .mapc-ring { opacity: 1; }
+          .mapc-loc:not([data-name="${hoverOnly}"]) .mapc-tile,
+          .mapc-loc:not([data-name="${hoverOnly}"]) .mapc-ring { transform: none !important; filter: none !important; opacity: 0 !important; }
+        ` : ""}
+
+        ${forceHoverAll ? `
+          .mapc-force-hover .mapc-tile { transform: scale(1.1) !important; filter: brightness(1.12) !important; }
+          .mapc-force-hover .mapc-ring { opacity: 1 !important; }
+        ` : ""}
+
         @keyframes mapc-press {
           0%, 30%, 55%, 85%, 100% { transform: scale(1); }
           40%, 70% { transform: scale(0.9); }
@@ -226,6 +237,65 @@ export default function MapComponent({
         @media (prefers-reduced-motion: reduce) {
           .mapc-pressed .mapc-tile { animation: none; }
           .mapc-tile { transition: none; }
+        }
+
+        .vol-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 8px;
+          background: transparent;
+          outline: none;
+          cursor: pointer;
+        }
+        .vol-slider::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 8px;
+          background: #1a1a1a;
+          border: 1px solid #000;
+          border-radius: 4px;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+        }
+        .vol-slider::-moz-range-track {
+          width: 100%;
+          height: 8px;
+          background: #1a1a1a;
+          border: 1px solid #000;
+          border-radius: 4px;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+        }
+        .vol-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          margin-top: -6px;
+          border-radius: 3px;
+          background: repeating-linear-gradient(
+            90deg,
+            #d9d9d9 0px,
+            #d9d9d9 1.5px,
+            #a0a0a0 1.5px,
+            #a0a0a0 3px
+          );
+          border: 1px solid #000;
+          box-shadow: inset 0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.6);
+          cursor: pointer;
+        }
+        .vol-slider::-moz-range-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 3px;
+          background: repeating-linear-gradient(
+            90deg,
+            #d9d9d9 0px,
+            #d9d9d9 1.5px,
+            #a0a0a0 1.5px,
+            #a0a0a0 3px
+          );
+          border: 1px solid #000;
+          box-shadow: inset 0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.6);
+          cursor: pointer;
         }
       `}</style>
 
@@ -243,6 +313,62 @@ export default function MapComponent({
           ].join(", "),
         }}
       >
+        {/* Audio control — always looks the same. Only handlers are guarded. */}
+        <div
+          className="absolute z-50 flex flex-col items-center"
+          style={{ right: cq(5), top: cq(3.5), width: cq(12) }}
+        >
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={isMuted ? "Unmute background music" : "Mute background music"}
+            className="flex items-center justify-center gap-1 rounded-sm border border-black transition-colors"
+            style={{
+              width: cq(12),
+              height: cq(3.2),
+              background: isMuted ? "#5a2323" : "#2b5a2b",
+              boxShadow: isMuted
+                ? "inset 0 1px 0 #a04a4a, inset 0 -1px 0 #2a0f0f"
+                : "inset 0 1px 0 #5ec85e, inset 0 -1px 0 #0f2a0f",
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ fontSize: cq(1.8), lineHeight: 1 }}>
+              {isMuted ? "🔇" : "🔊"}
+            </span>
+            <span style={{ fontSize: cq(1.5), color: "#fff", letterSpacing: "0.05em", fontWeight: "bold" }}>
+              {isMuted ? "OFF" : "ON"}
+            </span>
+          </button>
+
+          <div
+            className="mt-1.5 rounded-sm flex items-center"
+            style={{
+              width: cq(12),
+              height: cq(3),
+              background: "#8a8a8a",
+              border: "1px solid #000",
+              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6), 0 1px 0 #fff",
+              padding: "0 6px",
+            }}
+          >
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={bgmVolume}
+              onChange={(e) => {
+                if (muteForced) return; // guard only — UI looks normal
+                setBgmVolume(parseInt(e.target.value, 10));
+                if (isMuted) setIsMuted(false);
+              }}
+              className="vol-slider"
+              aria-label="Volume"
+            />
+          </div>
+        </div>
+
         <div
           aria-hidden="true"
           className="absolute"
@@ -292,7 +418,7 @@ export default function MapComponent({
 
             <rect x={VB.x} y={VB.y} width={VB.w} height={VB.h} fill={COLORS.screen} />
 
-            <text x={VB.x + VB.w / 2} y={-14} textAnchor="middle" fontSize="32" fill={COLORS.text} className={fontClassName} style={textStyle}>
+            <text x={VB.x + VB.w / 2} y={-14} textAnchor="middle" fontSize="25" fill={COLORS.text} className={fontClassName} style={textStyle}>
               University of Santo Fiarce
             </text>
 
@@ -340,7 +466,8 @@ export default function MapComponent({
               return (
                 <g
                   key={r.id}
-                  className={`mapc-loc ${pressedLocation === r.name ? "mapc-pressed" : ""}`}
+                  data-name={r.name}
+                  className={`mapc-loc ${pressedLocation === r.name ? "mapc-pressed" : ""} ${forceHoverAll ? "mapc-force-hover" : ""}`}
                   role="button"
                   tabIndex={disabled ? -1 : 0}
                   aria-label={`Open ${r.title}`}
@@ -384,103 +511,17 @@ export default function MapComponent({
           <div className="pointer-events-none absolute inset-0">{overlay}</div>
         </div>
 
-        {/* ============ DECORATIVE CONTROLS ============ */}
         <div aria-hidden="true">
-          {/* Power LED */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              left: cq(4.4),
-              top: cq(5.2),
-              width: cq(1.5),
-              height: cq(1.5),
-              background: "#ff3b3b",
-              border: `${cq(0.25)} solid #000`,
-              boxShadow: `0 0 ${cq(1)} #ff3b3b`,
-            }}
-          />
-
-          {/* D-pad */}
-          <div
-            className="absolute"
-            style={{ left: cq(4.2), top: cq(25), width: cq(14.6), height: cq(14.6), background: "#000", clipPath: CROSS }}
-          >
+          <div className="absolute rounded-full" style={{ left: cq(4.4), top: cq(5.2), width: cq(1.5), height: cq(1.5), background: "#ff3b3b", border: `${cq(0.25)} solid #000`, boxShadow: `0 0 ${cq(1)} #ff3b3b` }} />
+          <div className="absolute" style={{ left: cq(4.2), top: cq(25), width: cq(14.6), height: cq(14.6), background: "#000", clipPath: CROSS }}>
             <div className="absolute" style={{ inset: cq(0.45), background: "#2b2b2b", clipPath: CROSS }} />
           </div>
-
-          {/* A / B buttons */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              left: cq(89.5),
-              top: cq(26),
-              width: cq(6.6),
-              height: cq(6.6),
-              background: "#ff8fa3",
-              border: `${cq(0.4)} solid #000`,
-              boxSizing: "border-box",
-              boxShadow: `inset ${cq(-0.5)} ${cq(-0.5)} 0 #c9566b, inset ${cq(0.5)} ${cq(0.5)} 0 #ffd0d9`,
-            }}
-          />
-          <div
-            className="absolute rounded-full"
-            style={{
-              left: cq(81.4),
-              top: cq(32.5),
-              width: cq(6.6),
-              height: cq(6.6),
-              background: "#ff8fa3",
-              border: `${cq(0.4)} solid #000`,
-              boxSizing: "border-box",
-              boxShadow: `inset ${cq(-0.5)} ${cq(-0.5)} 0 #c9566b, inset ${cq(0.5)} ${cq(0.5)} 0 #ffd0d9`,
-            }}
-          />
-
-          {/* Select / Start pills */}
-          <div
-            className="absolute"
-            style={{
-              left: cq(5),
-              top: cq(52),
-              width: cq(5.4),
-              height: cq(1.5),
-              background: "#6b6b6b",
-              border: `${cq(0.3)} solid #000`,
-              boxSizing: "border-box",
-              borderRadius: cq(1),
-              transform: "rotate(-25deg)",
-            }}
-          />
-          <div
-            className="absolute"
-            style={{
-              left: cq(12.4),
-              top: cq(49.4),
-              width: cq(5.4),
-              height: cq(1.5),
-              background: "#6b6b6b",
-              border: `${cq(0.3)} solid #000`,
-              boxSizing: "border-box",
-              borderRadius: cq(1),
-              transform: "rotate(-25deg)",
-            }}
-          />
-
-          {/* Speaker slits */}
+          <div className="absolute rounded-full" style={{ left: cq(89.5), top: cq(26), width: cq(6.6), height: cq(6.6), background: "#ff8fa3", border: `${cq(0.4)} solid #000`, boxSizing: "border-box", boxShadow: `inset ${cq(-0.5)} ${cq(-0.5)} 0 #c9566b, inset ${cq(0.5)} ${cq(0.5)} 0 #ffd0d9` }} />
+          <div className="absolute rounded-full" style={{ left: cq(81.4), top: cq(32.5), width: cq(6.6), height: cq(6.6), background: "#ff8fa3", border: `${cq(0.4)} solid #000`, boxSizing: "border-box", boxShadow: `inset ${cq(-0.5)} ${cq(-0.5)} 0 #c9566b, inset ${cq(0.5)} ${cq(0.5)} 0 #ffd0d9` }} />
+          <div className="absolute" style={{ left: cq(5), top: cq(52), width: cq(5.4), height: cq(1.5), background: "#6b6b6b", border: `${cq(0.3)} solid #000`, boxSizing: "border-box", borderRadius: cq(1), transform: "rotate(-25deg)" }} />
+          <div className="absolute" style={{ left: cq(12.4), top: cq(49.4), width: cq(5.4), height: cq(1.5), background: "#6b6b6b", border: `${cq(0.3)} solid #000`, boxSizing: "border-box", borderRadius: cq(1), transform: "rotate(-25deg)" }} />
           {[0, 1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="absolute"
-              style={{
-                left: cq(82 + i * 2.3),
-                top: cq(53),
-                width: cq(0.8),
-                height: cq(8),
-                background: "#6b6b6b",
-                borderRadius: cq(0.4),
-                transform: "rotate(25deg)",
-              }}
-            />
+            <div key={i} className="absolute" style={{ left: cq(82 + i * 2.3), top: cq(53), width: cq(0.8), height: cq(8), background: "#6b6b6b", borderRadius: cq(0.4), transform: "rotate(25deg)" }} />
           ))}
         </div>
       </div>

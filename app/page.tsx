@@ -513,7 +513,7 @@ export default function Home() {
         >
           <span className="font-mono text-base font-bold tracking-widest sm:text-lg">continue</span>
           <div className="relative h-[40px] w-[48px] sm:h-[60px] sm:w-[68px] animate-bounce transition-transform duration-200 group-hover:scale-110">
-            <Image src="/images/downArrow.png" alt="" fill sizes="68px" className="object-contain" unoptimized />
+            <Image src="/images/main/downArrow.png" alt="" fill sizes="68px" className="object-contain" unoptimized />
           </div>
         </button>
       </section>

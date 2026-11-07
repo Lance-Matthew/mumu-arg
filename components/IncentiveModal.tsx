@@ -69,7 +69,40 @@ export default function IncentiveModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Update per-field visual feedback
+    // Check endings FIRST before we clear the values
+    const allGreen = LOCATIONS.every(
+      (loc) =>
+        values[loc].trim().toLowerCase() ===
+        GREEN_ANSWERS[loc].trim().toLowerCase()
+    );
+
+    const allRed = LOCATIONS.every(
+      (loc) =>
+        values[loc].trim().toLowerCase() ===
+        RED_ANSWERS[loc].trim().toLowerCase()
+    );
+
+    const correct = countCorrect();
+
+    if (allGreen) {
+      onClose();
+      router.push("/ending/green");
+      return;
+    }
+
+    if (allRed) {
+      onClose();
+      router.push("/maze");
+      return;
+    }
+
+    if (correct === 2) {
+      onClose();
+      router.push("/ending/gray");
+      return;
+    }
+
+    // If we didn't route away, now update the visual feedback
     const newStates: Record<string, FieldState> = {};
     const cleared: Record<string, string> = { ...values };
 
@@ -84,43 +117,6 @@ export default function IncentiveModal({
 
     setFieldStates(newStates);
     setValues(cleared);
-
-    const correct = countCorrect();
-
-    // All 5 green
-    if (
-      LOCATIONS.every(
-        (loc) =>
-          values[loc].trim().toLowerCase() ===
-          GREEN_ANSWERS[loc].trim().toLowerCase()
-      )
-    ) {
-      onClose();
-      router.push("/ending/green");
-      return;
-    }
-
-    // All 5 red
-    if (
-      LOCATIONS.every(
-        (loc) =>
-          values[loc].trim().toLowerCase() ===
-          RED_ANSWERS[loc].trim().toLowerCase()
-      )
-    ) {
-      onClose();
-      router.push("/ending/red");
-      return;
-    }
-
-    // Exactly 2 correct → gray ending
-    if (correct === 2) {
-      onClose();
-      router.push("/ending/gray");
-      return;
-    }
-
-    // Anything else: stay on the form, wrong fields cleared and outlined red
   };
 
   return (

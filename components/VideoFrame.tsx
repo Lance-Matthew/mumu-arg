@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
 
 const YELLOW = "#ffe793";
 
@@ -20,8 +21,64 @@ export default function VideoFrame({ src }: { src: string }) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [buffering, setBuffering] = useState(false);
 
-  // Keep fullscreen state in sync (user can exit via Esc)
+  // ── HLS / native source attach ────────────────────────────
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !src) return;
+
+    let hls: Hls | null = null;
+    const isHls = src.endsWith(".m3u8");
+
+    if (!isHls) {
+      video.src = src;
+      return;
+    }
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = src;
+    } else if (Hls.isSupported()) {
+      hls = new Hls({ enableWorker: true });
+      hls.loadSource(src);
+      hls.attachMedia(video);
+    }
+
+    return () => {
+      if (hls) hls.destroy();
+    };
+  }, [src]);
+
+  // ── buffering events ──────────────────────────────────────
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    const onWaiting = () => setBuffering(true);
+    const onPlaying = () => setBuffering(false);
+    const onCanPlay = () => setBuffering(false);
+    const onSeeking = () => setBuffering(true);
+    const onSeeked = () => {
+      // Only clear if we have enough data; otherwise wait for 'playing'
+      if (v.readyState >= 3) setBuffering(false);
+    };
+
+    v.addEventListener("waiting", onWaiting);
+    v.addEventListener("playing", onPlaying);
+    v.addEventListener("canplay", onCanPlay);
+    v.addEventListener("seeking", onSeeking);
+    v.addEventListener("seeked", onSeeked);
+
+    return () => {
+      v.removeEventListener("waiting", onWaiting);
+      v.removeEventListener("playing", onPlaying);
+      v.removeEventListener("canplay", onCanPlay);
+      v.removeEventListener("seeking", onSeeking);
+      v.removeEventListener("seeked", onSeeked);
+    };
+  }, []);
+
+  // Keep fullscreen state in sync
   useEffect(() => {
     const onChange = () => {
       setIsFullscreen(document.fullscreenElement === videoFrameRef.current);
@@ -30,7 +87,7 @@ export default function VideoFrame({ src }: { src: string }) {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
-  // Set initial volume (boost base by 50%, clamped to max 1)
+  // Initial volume
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -53,7 +110,6 @@ export default function VideoFrame({ src }: { src: string }) {
   const togglePlay = async () => {
     const v = videoRef.current;
     if (!v) return;
-
     if (v.paused) {
       void v.play();
     } else {
@@ -103,13 +159,11 @@ export default function VideoFrame({ src }: { src: string }) {
   return (
     <>
       <style>{`
-        /* Shared slider styling — filled portion always uses YELLOW */
         input[type="range"].video-range {
           -webkit-appearance: none;
           appearance: none;
           background: transparent;
           cursor: pointer;
-          /* fallback for browsers that don't support the custom fill var */
           --fill: 0%;
         }
         input[type="range"].video-range::-webkit-slider-runnable-track {
@@ -172,6 +226,13 @@ export default function VideoFrame({ src }: { src: string }) {
           height: 100% !important;
           object-fit: contain !important;
         }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .buffer-spinner {
+          animation: spin 0.8s linear infinite;
+        }
       `}</style>
 
       <div className="mx-auto w-full max-w-5xl rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)]">
@@ -183,7 +244,6 @@ export default function VideoFrame({ src }: { src: string }) {
           <video
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
-            src={src}
             playsInline
             preload="metadata"
             onClick={togglePlay}
@@ -201,8 +261,18 @@ export default function VideoFrame({ src }: { src: string }) {
             onTimeUpdate={handleTimeUpdate}
           />
 
-          {/* Custom play overlay (hidden while playing) */}
-          {!playing && (
+          {/* Buffering overlay — above the video, below the controls */}
+          {buffering && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/30">
+              <div
+                className="buffer-spinner h-12 w-12 rounded-full border-4 border-white/20"
+                style={{ borderTopColor: YELLOW }}
+              />
+            </div>
+          )}
+
+          {/* Play overlay */}
+          {!playing && !buffering && (
             <button
               type="button"
               onClick={togglePlay}
@@ -225,7 +295,7 @@ export default function VideoFrame({ src }: { src: string }) {
             </button>
           )}
 
-          {/* Pause button — top-right, just left of the fullscreen button */}
+          {/* Pause button */}
           {playing && (
             <div className="absolute top-3 right-14 z-20">
               <button
@@ -242,7 +312,7 @@ export default function VideoFrame({ src }: { src: string }) {
             </div>
           )}
 
-          {/* Fullscreen toggle — ALWAYS in the same spot (top-right) */}
+          {/* Fullscreen */}
           <button
             type="button"
             onClick={(e) => {
@@ -254,21 +324,18 @@ export default function VideoFrame({ src }: { src: string }) {
             style={{ background: YELLOW }}
           >
             {isFullscreen ? (
-              /* Exit fullscreen icon */
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
                 <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
               </svg>
             ) : (
-              /* Enter fullscreen icon */
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
                 <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
               </svg>
             )}
           </button>
 
-          {/* Bottom controls bar — seek + time + volume */}
+          {/* Bottom controls */}
           <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6">
-            {/* Seek bar */}
             <input
               type="range"
               className="video-range w-full"
@@ -280,14 +347,12 @@ export default function VideoFrame({ src }: { src: string }) {
               aria-label="Seek video"
               style={{ ["--fill" as string]: `${progress}%` }}
             />
-            {/* Time + volume row */}
             <div className="mt-2 flex items-center justify-between gap-3">
               <span className="text-[11px] text-white tabular-nums md:text-xs">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
 
               <div className="flex items-center gap-2">
-                {/* Mute toggle */}
                 <button
                   type="button"
                   onClick={toggleMute}
@@ -305,7 +370,6 @@ export default function VideoFrame({ src }: { src: string }) {
                   )}
                 </button>
 
-                {/* Volume slider */}
                 <input
                   type="range"
                   className="video-range w-20 md:w-24"

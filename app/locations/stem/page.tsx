@@ -4,7 +4,6 @@ import localFont from "next/font/local";
 import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import SchoolHeader from "@/components/SchoolHeader";
 import VideoFrame from "@/components/VideoFrame";
 
@@ -20,6 +19,10 @@ const plexMono = IBM_Plex_Mono({
 });
 
 const YELLOW = "#ffe793";
+
+// Cloudflare Stream HLS manifest for the "Tour with Ali" video
+const TOUR_VIDEO_SRC =
+  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/ea8b51812b1af47eedf1db3a6aab0a8e/manifest/video.m3u8";
 
 function CreamHeading({
   children,
@@ -63,23 +66,7 @@ const ShapeAnimations = () => (
   `}</style>
 );
 
-export default function StemPage() {
-  const [currentLab, setCurrentLab] = useState(0);
-
-  const labs = [
-    { src: "/images/stem/labs1.JPG", title: "Engineering" },
-    { src: "/images/stem/labs2.JPG", title: "Computer Labs" },
-    { src: "/images/stem/labs3.JPG", title: "3D Printing Labs" },
-  ];
-
-  const handleNextLab = () => {
-    if (currentLab < labs.length - 1) setCurrentLab((prev) => prev + 1);
-  };
-
-  const handlePrevLab = () => {
-    if (currentLab > 0) setCurrentLab((prev) => prev - 1);
-  };
-
+export default function ClassroomsPage() {
   return (
     <main className="min-h-screen w-full bg-white overflow-x-hidden">
       <ShapeAnimations />
@@ -88,13 +75,13 @@ export default function StemPage() {
         <SchoolHeader />
       </div>
 
-      {/* ============ SECTION 1 — ABOUT THE S.T.E.M. LABS (HERO) ============ */}
+      {/* ============ SECTION 1 — ABOUT THE CLASSROOMS (HERO) ============ */}
       <section className="relative flex min-h-[100svh] w-full flex-col justify-center overflow-hidden pt-16">
         
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/stem/stem1.JPG"
-            alt="STEM background"
+            src="/images/classrooms/classrooms1.JPG"
+            alt="Classrooms background"
             fill
             priority
             sizes="100vw"
@@ -119,7 +106,7 @@ export default function StemPage() {
                 fontClass={sifonn.className}
                 className="whitespace-nowrap text-[clamp(2.275rem,6.3vw,5.6rem)] leading-[0.95]"
               >
-                S.T.E.M. Labs
+                Classrooms
               </CreamHeading>
 
               <p className={`${plexMono.className} mt-5 w-0 min-w-full text-[15px] leading-relaxed text-black sm:text-[1.05rem]`}>
@@ -127,20 +114,39 @@ export default function StemPage() {
               </p>
             </div>
 
-            <div className="relative mx-auto aspect-[4/3] w-full max-w-lg drop-shadow-2xl md:translate-x-[25%]">
+            <div className="relative mx-auto aspect-[4/3] w-full max-w-lg drop-shadow-2xl md:-translate-x-[10%]">
               <Image
-                src="/images/stem/potion.png"
-                alt="Potion"
+                src="/images/classrooms/seat.png"
+                alt="Seat"
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-contain"
               />
 
-              {/* CLUSTER A - Top Left (red/pink glow) */}
-              <div className="absolute -top-8 -left-8 w-32 h-32 pointer-events-none z-20">
-                <div className="absolute top-0 left-0 anim-path-2">
+              {/* CLUSTER B - Top Right */}
+              <div className="absolute -top-8 -right-8 w-32 h-32 pointer-events-none z-20">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 anim-path-3">
                   <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
+                    <Image src="/images/shapes/noodle1.png" alt="Noodle shape" fill sizes="56px" className="object-contain" />
+                  </div>
+                </div>
+                <div className="absolute bottom-0 left-0 anim-path-1">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#ffeaa6)_drop-shadow(-1.5px_0_0_#ffeaa6)_drop-shadow(0_1.5px_0_#ffeaa6)_drop-shadow(0_-1.5px_0_#ffeaa6)]">
+                    <Image src="/images/shapes/fita2.png" alt="Fita shape" fill sizes="56px" className="object-contain" />
+                  </div>
+                </div>
+                <div className="absolute bottom-0 right-0 anim-path-2">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
+                    <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="56px" className="object-contain" />
+                  </div>
+                </div>
+              </div>
+
+              {/* CLUSTER A - Bottom Left */}
+              <div className="absolute -bottom-8 -left-8 w-32 h-32 pointer-events-none z-20">
+                <div className="absolute top-0 left-0 anim-path-2">
+                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#ffeaa6)_drop-shadow(-1.5px_0_0_#ffeaa6)_drop-shadow(0_1.5px_0_#ffeaa6)_drop-shadow(0_-1.5px_0_#ffeaa6)]">
                     <Image src="/images/shapes/noodle2.png" alt="Noodle shape" fill sizes="56px" className="object-contain" />
                   </div>
                 </div>
@@ -155,58 +161,36 @@ export default function StemPage() {
                   </div>
                 </div>
               </div>
-
-              {/* CLUSTER B - Bottom Right (cream/yellow glow) */}
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 pointer-events-none z-20">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 anim-path-3">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#ffeaa6)_drop-shadow(-1.5px_0_0_#ffeaa6)_drop-shadow(0_1.5px_0_#ffeaa6)_drop-shadow(0_-1.5px_0_#ffeaa6)]">
-                    <Image src="/images/shapes/noodle1.png" alt="Noodle shape" fill sizes="56px" className="object-contain" />
-                  </div>
-                </div>
-                <div className="absolute bottom-0 left-0 anim-path-1">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#ffeaa6)_drop-shadow(-1.5px_0_0_#ffeaa6)_drop-shadow(0_1.5px_0_#ffeaa6)_drop-shadow(0_-1.5px_0_#ffeaa6)]">
-                    <Image src="/images/shapes/fita2.png" alt="Fita shape" fill sizes="56px" className="object-contain" />
-                  </div>
-                </div>
-                <div className="absolute bottom-0 right-0 anim-path-2">
-                  <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#ffeaa6)_drop-shadow(-1.5px_0_0_#ffeaa6)_drop-shadow(0_1.5px_0_#ffeaa6)_drop-shadow(0_-1.5px_0_#ffeaa6)]">
-                    <Image src="/images/shapes/dorito.png" alt="Dorito shape" fill sizes="56px" className="object-contain" />
-                  </div>
-                </div>
-              </div>
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* ============ SECTION 2 — A FIARCEAN HISTORY ============ */}
+      {/* ============ SECTION 2 — GREEN INITIATIVE ============ */}
       <section
-        id="history"
         className="relative w-full py-24"
         style={{ background: "linear-gradient(to bottom, #ff7f7f 0%, #ffc9c6 18%, #fff3f2 45%, #ffffff 60%, #ffffff 100%)" }}
       >
         <div className="mx-auto flex w-full max-w-6xl flex-col px-6 sm:px-10 md:px-16">
           
           <CreamHeading fontClass={sifonn.className} className="mb-12 text-[clamp(2.5rem,6vw,4.5rem)]">
-            A Fiarcean History
+            Green Initiative
           </CreamHeading>
 
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-8 md:gap-12 items-start">
             
             <div className="flex flex-col gap-4">
-              <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden shadow-lg border-4 border-[#fff3f2]">
+              <div className="relative w-full drop-shadow-lg">
                 <Image
-                  src="/images/stem/stem2.png"
-                  alt="STEM History"
-                  fill
+                  src="/images/classrooms/bonsai.png"
+                  alt="Bonsai"
+                  width={500}
+                  height={500}
                   sizes="(max-width: 768px) 100vw, 40vw"
-                  className="object-cover"
+                  className="object-contain w-full h-auto"
                 />
               </div>
-              <p className={`${plexMono.className} text-sm md:text-base text-black text-center`}>
-                S.T.E.M. Labs Renovated (2023)
-              </p>
             </div>
 
             <div className={`${plexMono.className} space-y-5 text-[15px] leading-relaxed text-black md:text-[1.05rem]`}>
@@ -226,7 +210,7 @@ export default function StemPage() {
         </div>
       </section>
 
-      {/* ============ SECTION 3 — LABORATORIES ============ */}
+      {/* ============ SECTION 3 — BASIC GUIDELINES ============ */}
       <section
         id="services"
         className="relative w-full py-24"
@@ -251,72 +235,24 @@ export default function StemPage() {
             </div>
 
             <h3 className={`${plexMono.className} mb-10 text-center text-3xl font-bold text-black md:text-4xl`}>
-              Laboratories
+              Basic Guidelines
             </h3>
             
-            <div className="relative flex items-center justify-center gap-4 max-w-lg mx-auto">
-              
-              {currentLab > 0 && (
-                <button 
-                  onClick={handlePrevLab}
-                  className="absolute -left-4 md:-left-10 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:h-14 md:w-14"
-                >
-                  <div className="relative w-2/3 h-2/3 rotate-90">
-                    <Image src="/images/main/downArrow.png" alt="Left" fill sizes="56px" className="object-contain" />
-                  </div>
-                </button>
-              )}
-
-              {/* Slide track — pure horizontal sliding, no fade */}
-              <div className="relative w-full max-w-[360px] aspect-[2/3] rounded-xl overflow-hidden border-4 border-black bg-white shadow-[6px_8px_0_rgba(0,0,0,0.35)]">
-                <div
-                  className="flex h-full w-full transition-transform duration-500 ease-in-out"
-                  style={{ transform: `translateX(-${currentLab * 100}%)` }}
-                >
-                  {labs.map((lab, index) => (
-                    <div key={index} className="relative h-full w-full shrink-0">
-                      <Image
-                        src={lab.src}
-                        alt={lab.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 500px"
-                        className="object-cover"
-                        quality={100}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {currentLab < labs.length - 1 && (
-                <button 
-                  onClick={handleNextLab}
-                  className="absolute -right-4 md:-right-10 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:h-14 md:w-14"
-                >
-                  <div className="relative w-2/3 h-2/3 -rotate-90">
-                    <Image src="/images/downArrow.png" alt="Right" fill sizes="56px" className="object-contain" />
-                  </div>
-                </button>
-              )}
-            </div>
-
-            {/* Dot indicators */}
-            <div className="mt-6 flex items-center justify-center gap-2">
-              {labs.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentLab(index)}
-                  aria-label={`Go to lab ${index + 1}`}
-                  className={`h-3 w-3 rounded-full border-2 border-black transition-all duration-200 ${
-                    index === currentLab ? "scale-125 bg-black" : "bg-white/70 hover:bg-white"
-                  }`}
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative w-full max-w-[300px] aspect-[4/3]">
+                <Image
+                  src="/images/classrooms/i.png"
+                  alt="Guidelines"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 300px"
+                  className="object-contain"
                 />
-              ))}
+              </div>
+              
+              <p className={`${plexMono.className} text-sm md:text-base leading-relaxed text-black text-center max-w-md mx-auto`}>
+                Vestibulum eu turpis felis. In hac habitasse platea dictumst. Cras ac massa vulputate.
+              </p>
             </div>
-
-            <p className={`${plexMono.className} mt-6 text-center text-lg font-bold text-black md:text-xl`}>
-              {labs[currentLab].title}
-            </p>
           </div>
 
         </div>
@@ -338,7 +274,7 @@ export default function StemPage() {
                 </CreamHeading>
                 <div className="relative w-14 h-14 md:w-20 md:h-20 shrink-0">
                   <Image
-                    src="/images/gym/gymArrow.png"
+                    src="/images/library/libraryArrow.png"
                     alt="Arrow"
                     fill
                     sizes="80px"
@@ -346,18 +282,20 @@ export default function StemPage() {
                   />
                 </div>
               </div>
-
-              {/* Back to Campus Map button — top right, aligned with heading bottom edge */}
-              <Link
-                href="/map"
-                className={`${plexMono.className} mb-2 shrink-0 border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
-              >
-                Back to Campus Map
-              </Link>
             </div>
           </div>
 
-          <VideoFrame src="/videos/D.mp4" />
+          <VideoFrame src={TOUR_VIDEO_SRC} />
+
+          {/* Back to Campus Map button — now below the video, centered */}
+          <div className="mt-8 flex justify-center">
+            <Link
+              href="/map"
+              className={`${plexMono.className} border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+            >
+              Back to Campus Map
+            </Link>
+          </div>
 
         </div>
       </section>

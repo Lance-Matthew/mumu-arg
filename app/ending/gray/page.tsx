@@ -3,14 +3,13 @@
 import Link from "next/link";
 import VideoFrame from "@/components/VideoFrame";
 
+const ENDING_VIDEO_SRC =
+  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/eb444872a079308b56ed9c1a50b22fde/manifest/video.m3u8";
+
 export default function GrayEndingPage() {
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-[#6b7280] px-6 py-16">
-      <h1 className="mb-8 text-center font-mono text-3xl font-black text-white drop-shadow-[3px_3px_0_rgba(0,0,0,0.5)] md:text-5xl">
-        Gray Ending
-      </h1>
-
-      <VideoFrame src="/videos/grayEnding.mp4" />
+    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-black px-6 py-16">
+      <VideoFrame src={ENDING_VIDEO_SRC} />
 
       <Link
         href="/"

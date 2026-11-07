@@ -20,6 +20,10 @@ const plexMono = IBM_Plex_Mono({
 
 const YELLOW = "#ffe793";
 
+// Cloudflare Stream HLS manifest for the "Tour with Ali" video
+const TOUR_VIDEO_SRC =
+  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/df6ebfe80d979f49b7a7ab2328dc5c70/manifest/video.m3u8";
+
 function GreenHeading({
   children,
   fontClass,
@@ -241,7 +245,7 @@ export default function SportsCenterPage() {
             </div>
           </div>
 
-          <VideoFrame src="/videos/D.mp4" />
+          <VideoFrame src={TOUR_VIDEO_SRC} />
 
         </div>
       </section>

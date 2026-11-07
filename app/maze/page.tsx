@@ -1,6 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Press_Start_2P } from "next/font/google";
+
+const pressStart = Press_Start_2P({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
 
 const CANVAS_W = 1200;
 const CANVAS_H = 675;
@@ -10,8 +18,8 @@ const COLORS = {
   yellow: "#c1ff72",
   red: "#ff3131",
   white: "#ffffff",
-  green: "#86a758", // wall green
-  label: "#e3efcf", // room label text
+  green: "#86a758",
+  label: "#e3efcf",
   placeholder: "#c8c8c8",
   placeholderBorder: "#8c8c8c",
 };
@@ -24,63 +32,58 @@ type Point = {
 };
 
 const YELLOW_POLYGON: Point[] = [
-  { x: 826, y: 84 },   // 1
-  { x: 744, y: 84 },   // 2
-  { x: 744, y: 109 },  // 3
-  { x: 621, y: 109 },  // 4
-  { x: 621, y: 244 },  // 5
-  { x: 524, y: 244 },  // 6
-  { x: 524, y: 341 },  // 7
-  { x: 572, y: 341 },  // 8
-  { x: 572, y: 415 },  // 9
-  { x: 492, y: 415 },  // 10
-  { x: 492, y: 491 },  // 11
-  { x: 416, y: 492 },  // 12
-  { x: 416, y: 565 },  // 13
-  { x: 333, y: 566 },  // 14
-  { x: 333, y: 603 },  // 15
-  { x: 444, y: 603 },  // 16
-  { x: 444, y: 528 },  // 17
-  { x: 517, y: 527 },  // 18
-  { x: 517, y: 431 },  // 19
-  { x: 592, y: 430 },  // 20
-  { x: 592, y: 326 },  // 21
-  { x: 543, y: 326 },  // 22
-  { x: 543, y: 259 },  // 23
-  { x: 635, y: 259 },  // 24
-  { x: 634, y: 123 },  // 25
-  { x: 758, y: 123 },  // 26
-  { x: 758, y: 98 },   // 27
-  { x: 826, y: 98 },   // 28
+  { x: 826, y: 84 },
+  { x: 744, y: 84 },
+  { x: 744, y: 109 },
+  { x: 621, y: 109 },
+  { x: 621, y: 244 },
+  { x: 524, y: 244 },
+  { x: 524, y: 341 },
+  { x: 572, y: 341 },
+  { x: 572, y: 415 },
+  { x: 492, y: 415 },
+  { x: 492, y: 491 },
+  { x: 416, y: 492 },
+  { x: 416, y: 565 },
+  { x: 333, y: 566 },
+  { x: 333, y: 603 },
+  { x: 444, y: 603 },
+  { x: 444, y: 528 },
+  { x: 517, y: 527 },
+  { x: 517, y: 431 },
+  { x: 592, y: 430 },
+  { x: 592, y: 326 },
+  { x: 543, y: 326 },
+  { x: 543, y: 259 },
+  { x: 635, y: 259 },
+  { x: 634, y: 123 },
+  { x: 758, y: 123 },
+  { x: 758, y: 98 },
+  { x: 826, y: 98 },
 ];
 
 const START: Point = { x: 582, y: 375 };
-const EXIT_1 = { x: 849, y: 90 };
-const EXIT_2 = { x: 297, y: 584 };
+const EXIT_1 = { x: 849, y: 90 };   // Top-right → /ending/gray
+const EXIT_2 = { x: 333, y: 603 };  // Bottom-left edge → /ending/red
 
 const PLAYER_RADIUS = 8;
-
 const PATH_COLLISION_PADDING = 0;
-
 const WALL_HIT_OUTSIDE_RATIO = 0.4;
 const COLLISION_SAMPLES = 40;
-
 const FLASH_DURATION_MS = 500;
+
+const EXIT_RADIUS = 38;
 
 const AALIYAH_IMAGE_SRC = "/aaliyah.png";
 
-// Maze images (public/images/maze)
 const IMG_DIR = "/images/maze";
 const CURSOR_SRC = `${IMG_DIR}/mazeCursor.png`;
 const GATE_SRC = `${IMG_DIR}/mazeGate.png`;
-const CURSOR_HEIGHT = 38; // canvas units; width follows the image's aspect ratio
-const GATE_HEIGHT = 70; // canvas units (height of the image before rotating)
-const GATE_ROTATION = Math.PI / 2; // 90 degrees: gates stand vertically
-// Which point of the cursor image is the "real" pointer position
-// (0-1 across, 0-1 down). 0.5 / 1 = bottom-center, i.e. the tip.
+const CURSOR_HEIGHT = 38;
+const GATE_HEIGHT = 70;
+const GATE_ROTATION = Math.PI / 2;
 const CURSOR_TIP = { x: 0.5, y: 1 };
 
-// Text above/below the maze
 const TOP_TEXT_START = "Click this icon to start";
 const TOP_TEXT_RETRY = "Click this icon to try again";
 const TOP_TEXT_PLAYING = "You are here. Leave.";
@@ -89,15 +92,6 @@ const BOTTOM_LINE_2 = "DO NOT MOVE OFF THE PATH.";
 const TOP_BAR_HEIGHT = "clamp(2rem, 7dvh, 4rem)";
 const BOTTOM_BAR_HEIGHT = "clamp(3rem, 10dvh, 5.5rem)";
 
-/* ------------------------------------------------------------------ */
-/*  VISUAL-ONLY LAYER (green walls + room image placeholders)          */
-/*  None of this affects collision — the yellow polygon still decides  */
-/*  where the player can go.                                           */
-/* ------------------------------------------------------------------ */
-
-// The reference map image is 568x528. These numbers convert reference
-// coordinates into canvas coordinates so they line up with your yellow path.
-// Tweak them if everything needs to shift/scale together.
 const REF = { sx: 1.194, sy: 1.27, ox: 241, oy: -8 };
 
 const refToCanvas = (x: number, y: number): Point => ({
@@ -107,66 +101,46 @@ const refToCanvas = (x: number, y: number): Point => ({
 
 type Segment = [x1: number, y1: number, x2: number, y2: number];
 
-// Uniform wall thickness in canvas units (same for horizontal + vertical)
 const WALL_THICKNESS = 14;
 
-// Green walls as CENTERLINES, in reference-image coordinates.
-// They're stroked with square caps in a single path, so corners and
-// T-junctions merge cleanly: no overlap seams, no stray extrusions.
 const WALLS: Segment[] = [
-  // Left outer wall + top wall (gap for the top gate)
   [74, 34, 74, 414],
   [74, 34, 244, 34],
   [321, 34, 484, 34],
-
-  // 2. Sports Center room
-  [74, 142, 229, 142], // bottom
-  [229, 34, 229, 142], // right
-
-  // 3. Theater room
-  [74, 246, 207, 246], // bottom
-  [207, 142, 207, 246], // right
-
-  // 4. Labs room
-  [74, 366, 170, 366], // bottom
-  [170, 246, 170, 366], // right
-
-  // 5. Classrooms room
-  [376, 154, 489, 154], // top
-  [376, 154, 376, 306], // left
-  [349, 306, 489, 306], // bottom / library top
-  [489, 136, 489, 509], // right wall (runs down past the library)
-
-  // 1. Library room
-  [349, 306, 349, 509], // left
-
-  // Bottom wall (gap for the bottom gate)
+  [74, 142, 229, 142],
+  [229, 34, 229, 142],
+  [74, 246, 207, 246],
+  [207, 142, 207, 246],
+  [74, 366, 170, 366],
+  [170, 246, 170, 366],
+  [376, 154, 489, 154],
+  [376, 154, 376, 306],
+  [349, 306, 489, 306],
+  [489, 136, 489, 509],
+  [349, 306, 349, 509],
   [74, 509, 244, 509],
   [321, 509, 489, 509],
 ];
 
-// Dashed "door" lines in CANVAS coordinates [x1, y1, x2, y2].
-// Wall-side ends start under a wall and path-side ends tuck under the yellow
-// path (both are drawn on top), so the dashes always meet them cleanly.
 const DOOR_DASHES: Segment[] = [
-  [579, 40, 579, 250], // top gate -> yellow path
-  [514, 104, 579, 104], // 2. Sports Center door
-  [488, 252, 540, 252], // 3. Theater door
-  [690, 252, 625, 252], // 5. Classrooms door
-  [444, 379, 582, 379], // 4. Labs door
-  [579, 509, 579, 630], // bottom gate -> library door line
-  [658, 509, 505, 509], // 1. Library door
+  [579, 40, 579, 250],
+  [514, 104, 579, 104],
+  [488, 252, 540, 252],
+  [690, 252, 625, 252],
+  [444, 379, 582, 379],
+  [579, 509, 579, 630],
+  [658, 509, 505, 509],
 ];
 
 const DASH_THICKNESS = 7;
-const DASH_PATTERN: [number, number] = [18, 12]; // dash, gap
+const DASH_PATTERN: [number, number] = [18, 12];
 
 type Room = {
   id: number;
   label: string;
-  labelAt: Point; // reference coords (center of label text)
-  boxAt: Point; // reference coords (center of image placeholder)
-  src?: string; // set this to swap the placeholder for a real image
+  labelAt: Point;
+  boxAt: Point;
+  src?: string;
 };
 
 const ROOMS: Room[] = [
@@ -175,14 +149,13 @@ const ROOMS: Room[] = [
   { id: 3, src: `${IMG_DIR}/3.png`, label: "3.Theater", labelAt: { x: 138, y: 166 }, boxAt: { x: 138, y: 205 } },
   { id: 4, src: `${IMG_DIR}/4.png`, label: "4.Labs", labelAt: { x: 117, y: 275 }, boxAt: { x: 118, y: 310 } },
   { id: 5, src: `${IMG_DIR}/5.png`, label: "5.Classrooms", labelAt: { x: 430, y: 194 }, boxAt: { x: 432, y: 230 } },
-  // Example once you have art:  src: "/images/maze/library.png"
 ];
 
 const PLACEHOLDER_SIZE = 50;
 
 function drawDoorDashes(ctx: CanvasRenderingContext2D) {
   ctx.save();
-  ctx.strokeStyle = COLORS.yellow;
+  ctx.strokeStyle = COLORS.green; // Changed to green
   ctx.lineWidth = DASH_THICKNESS;
   ctx.lineCap = "butt";
   ctx.setLineDash(DASH_PATTERN);
@@ -204,12 +177,10 @@ function drawWalls(ctx: CanvasRenderingContext2D) {
   ctx.lineCap = "square";
   ctx.lineJoin = "miter";
 
-  // One path, one stroke -> overlaps are merged, not layered
   ctx.beginPath();
   WALLS.forEach(([x1, y1, x2, y2]) => {
     const a = refToCanvas(x1, y1);
     const b = refToCanvas(x2, y2);
-    // Snap to whole canvas units so edges land on clean pixel boundaries
     ctx.moveTo(Math.round(a.x), Math.round(a.y));
     ctx.lineTo(Math.round(b.x), Math.round(b.y));
   });
@@ -217,8 +188,6 @@ function drawWalls(ctx: CanvasRenderingContext2D) {
   ctx.restore();
 }
 
-// Small decorative icons (visual only), in canvas coordinates.
-// Each path is SVG path data, drawn around its anchor point.
 const GRASS_POINTS: Point[] = [
   { x: 693, y: 94 },
   { x: 498, y: 346 },
@@ -231,7 +200,6 @@ const DINING_POINTS: Point[] = [
   { x: 367, y: 487 },
 ];
 
-// Grass tuft: anchored at its base
 const GRASS_PATHS = [
   "M0 0 C-2 -8 -6 -12 -9 -17",
   "M0 0 C0 -9 -1 -15 -2 -22",
@@ -240,11 +208,10 @@ const GRASS_PATHS = [
   "M0 0 C-4 -6 -9 -8 -14 -9",
 ];
 
-// Plate + fork + knife: anchored near the plate's center
 const DINING_PATHS = [
-  "M6 -1 A9.2 9.2 0 1 0 6 13", // plate (open "C" shape)
-  "M12 -1 V5 M14.5 -1 V5 M17 -1 V5 M12 5 Q14.5 8 17 5 M14.5 8 V14", // fork
-  "M21 14 V-1 Q24 2 21 7", // knife
+  "M6 -1 A9.2 9.2 0 1 0 6 13",
+  "M12 -1 V5 M14.5 -1 V5 M17 -1 V5 M12 5 Q14.5 8 17 5 M14.5 8 V14",
+  "M21 14 V-1 Q24 2 21 7",
 ];
 
 function drawDecorations(ctx: CanvasRenderingContext2D) {
@@ -285,7 +252,6 @@ function drawPlaceholder(
   ctx.save();
 
   if (img) {
-    // Real image: cover-fit inside the square
     ctx.beginPath();
     ctx.rect(x, y, s, s);
     ctx.clip();
@@ -294,11 +260,9 @@ function drawPlaceholder(
     const dh = img.height * scale;
     ctx.drawImage(img, c.x - dw / 2, c.y - dh / 2, dw, dh);
   } else {
-    // Gray placeholder tile
     ctx.fillStyle = COLORS.placeholder;
     ctx.fillRect(x, y, s, s);
 
-    // Simple "image" icon: sun + mountains
     ctx.fillStyle = COLORS.placeholderBorder;
     ctx.beginPath();
     ctx.arc(x + s * 0.7, y + s * 0.3, s * 0.08, 0, Math.PI * 2);
@@ -314,7 +278,6 @@ function drawPlaceholder(
     ctx.fill();
   }
 
-  // Border (placeholder tile only)
   if (!img) {
     ctx.strokeStyle = COLORS.placeholderBorder;
     ctx.lineWidth = 2;
@@ -334,17 +297,13 @@ function drawRooms(
     const l = refToCanvas(room.labelAt.x, room.labelAt.y);
     ctx.save();
     ctx.fillStyle = COLORS.label;
-    ctx.font = "bold 15px monospace";
+    ctx.font = "bold 15px 'Press Start 2P', monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(room.label, l.x, l.y);
     ctx.restore();
   });
 }
-
-/* ------------------------------------------------------------------ */
-/*  ORIGINAL LOGIC (unchanged)                                         */
-/* ------------------------------------------------------------------ */
 
 function pointInPolygon(point: Point, polygon: Point[]) {
   let inside = false;
@@ -409,9 +368,6 @@ function isWallCollision(x: number, y: number) {
   return getWallOutsideRatio(x, y) >= WALL_HIT_OUTSIDE_RATIO;
 }
 
-// Draws `img` at `height` (width follows the aspect ratio) so that the point
-// (ax, ay) of the image lands on (x, y). 0.5 / 0.5 is the center, 0.5 / 1 the
-// bottom-center. Optional rotation (radians) is applied around (x, y).
 function drawImageAnchored(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -430,32 +386,8 @@ function drawImageAnchored(
   ctx.restore();
 }
 
-// Draw big numbered labels at each polygon point — debug mode only.
-function drawDebugLabels(ctx: CanvasRenderingContext2D) {
-  YELLOW_POLYGON.forEach((p, i) => {
-    const label = String(i + 1);
-
-    // Big filled circle
-    ctx.fillStyle = "rgba(255, 0, 255, 0.9)";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
-    ctx.fill();
-
-    // White border ring
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // The number — centered inside the circle
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 16px monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(label, p.x, p.y + 1);
-  });
-}
-
 export default function MazePage() {
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const collisionLockRef = useRef(false);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
@@ -465,9 +397,7 @@ export default function MazePage() {
   const [ending, setEnding] = useState<Ending>(null);
   const [aaliyahFlash, setAaliyahFlash] = useState(false);
   const [hasRetried, setHasRetried] = useState(false);
-  const [showLabels, setShowLabels] = useState(false);
   const [imagesTick, setImagesTick] = useState(0);
-  // Backing-store multiplier so the canvas stays sharp (HD) at any size.
   const [scale, setScale] = useState(2);
 
   const reset = useCallback(() => {
@@ -485,7 +415,6 @@ export default function MazePage() {
     setAaliyahFlash(true);
   }, []);
 
-  // When the flash becomes visible, wait FLASH_DURATION_MS then reset.
   useEffect(() => {
     if (!aaliyahFlash) return;
 
@@ -501,8 +430,8 @@ export default function MazePage() {
   }, [aaliyahFlash]);
 
   const checkEnding = useCallback((p: Point): Ending => {
-    const nearExit1 = Math.hypot(p.x - EXIT_1.x, p.y - EXIT_1.y) < 38;
-    const nearExit2 = Math.hypot(p.x - EXIT_2.x, p.y - EXIT_2.y) < 38;
+    const nearExit1 = Math.hypot(p.x - EXIT_1.x, p.y - EXIT_1.y) < EXIT_RADIUS;
+    const nearExit2 = Math.hypot(p.x - EXIT_2.x, p.y - EXIT_2.y) < EXIT_RADIUS;
 
     if (nearExit1) return "Ending 1";
     if (nearExit2) return "Ending 2";
@@ -515,7 +444,6 @@ export default function MazePage() {
     image.src = AALIYAH_IMAGE_SRC;
   }, []);
 
-  // Keep the canvas resolution matched to its on-screen size x pixel ratio.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -538,7 +466,6 @@ export default function MazePage() {
     };
   }, []);
 
-  // Load room images, cursor and gate; redraw as each one arrives.
   useEffect(() => {
     const sources: Record<string, string> = {
       cursor: CURSOR_SRC,
@@ -565,7 +492,6 @@ export default function MazePage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Draw in 1200x675 units, rendered at `scale`x resolution
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
@@ -575,13 +501,8 @@ export default function MazePage() {
     ctx.fillStyle = COLORS.bg;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-    // Grass + plate/utensil icons (visual only) — under everything else
     drawDecorations(ctx);
-
-    // Dashed door lines (visual only) — under walls and the yellow path
     drawDoorDashes(ctx);
-
-    // Green walls (visual only) — drawn under the yellow path
     drawWalls(ctx);
 
     ctx.save();
@@ -595,18 +516,14 @@ export default function MazePage() {
     ctx.fill();
     ctx.restore();
 
-    // Room labels + image placeholders (visual only)
     drawRooms(ctx, imagesRef.current);
 
-    // Exit gates
     const gate = imagesRef.current.gate;
     if (gate) {
       drawImageAnchored(ctx, gate, EXIT_1.x, EXIT_1.y, GATE_HEIGHT, 0.5, 0.5, GATE_ROTATION);
       drawImageAnchored(ctx, gate, EXIT_2.x, EXIT_2.y, GATE_HEIGHT, 0.5, 0.5, GATE_ROTATION);
     }
 
-    // Player cursor. Before the game starts, the pulsing overlay button
-    // shows the cursor instead, so it isn't drawn here.
     if (started) {
       const cursorImg = imagesRef.current.cursor;
       if (cursorImg) {
@@ -620,7 +537,6 @@ export default function MazePage() {
           CURSOR_TIP.y
         );
       } else {
-        // Fallback dot while the image loads
         ctx.save();
         ctx.beginPath();
         ctx.arc(cursor.x, cursor.y, PLAYER_RADIUS, 0, Math.PI * 2);
@@ -632,12 +548,7 @@ export default function MazePage() {
         ctx.restore();
       }
     }
-
-    // Debug labels overlay
-    if (showLabels) {
-      drawDebugLabels(ctx);
-    }
-  }, [cursor, ending, aaliyahFlash, showLabels, imagesTick, scale, started]);
+  }, [cursor, ending, aaliyahFlash, imagesTick, scale, started]);
 
   const getCanvasPoint = (
     e: React.MouseEvent<HTMLCanvasElement> | React.PointerEvent<HTMLCanvasElement>
@@ -676,7 +587,14 @@ export default function MazePage() {
     setCursor(p);
 
     const hit = checkEnding(p);
-    if (hit) setEnding(hit);
+    if (hit) {
+      setEnding(hit);
+      if (hit === "Ending 1") {
+        router.push("/ending/gray");
+      } else {
+        router.push("/ending/red");
+      }
+    }
   };
 
   return (
@@ -695,7 +613,7 @@ export default function MazePage() {
       `}</style>
 
       <div
-        className="flex shrink-0 items-center justify-center gap-2 px-4 text-center font-mono text-xs tracking-[0.1em] text-[#c1ff72] sm:gap-3 sm:text-sm sm:tracking-[0.15em] lg:text-lg"
+        className={`${pressStart.className} flex shrink-0 items-center justify-center gap-2 px-4 text-center text-xs tracking-[0.1em] text-white sm:gap-3 sm:text-sm sm:tracking-[0.15em] lg:text-lg`}
         style={{ height: TOP_BAR_HEIGHT }}
       >
         {started ? (
@@ -731,18 +649,6 @@ export default function MazePage() {
           style={{ aspectRatio: "16 / 9" }}
         />
 
-        {/* Debug toggle — top right of the canvas */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowLabels((s) => !s);
-          }}
-          className="absolute top-3 right-3 z-20 rounded-md border border-[#c1ff72] bg-black/85 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-[#c1ff72] hover:bg-[#00703c] cursor-pointer"
-        >
-          {showLabels ? "Hide points" : "Show points"}
-        </button>
-
         {!started && !ending && !aaliyahFlash && (
           <button
             type="button"
@@ -768,28 +674,6 @@ export default function MazePage() {
           </button>
         )}
 
-        {ending && !aaliyahFlash && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <div className="text-center font-mono">
-              <div className="mb-2 text-[10px] uppercase tracking-[0.3em] sm:text-xs text-[#c1ff72]">
-                You made it home
-              </div>
-
-              <div className="mb-4 text-2xl font-bold text-white sm:mb-6 sm:text-4xl">
-                {ending}
-              </div>
-
-              <button
-                type="button"
-                onClick={reset}
-                className="border border-[#c1ff72] px-4 py-1.5 text-xs text-[#c1ff72] sm:px-5 sm:py-2 sm:text-sm transition hover:bg-[#c1ff72] hover:text-black"
-              >
-                PLAY AGAIN
-              </button>
-            </div>
-          </div>
-        )}
-
         {aaliyahFlash && (
           <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-black">
             <img
@@ -804,7 +688,7 @@ export default function MazePage() {
       </div>
 
       <div
-        className="flex shrink-0 flex-col items-center justify-center px-4 text-center font-mono text-xs tracking-[0.1em] text-[#c1ff72] sm:text-sm sm:tracking-[0.15em] lg:text-lg"
+        className={`${pressStart.className} flex shrink-0 flex-col items-center justify-center px-4 text-center text-xs tracking-[0.1em] text-white sm:text-sm sm:tracking-[0.15em] lg:text-lg`}
         style={{ height: BOTTOM_BAR_HEIGHT }}
       >
         <p>{BOTTOM_LINE_1}</p>

@@ -4,21 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import localFont from "next/font/local";
-import { IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Press_Start_2P } from "next/font/google";
 import SchoolHeader from "@/components/SchoolHeader";
 
-// ── progress ────────────────────────────────────────────────────
 import { useProgress } from "@/lib/useProgress";
 import { readProgress, writeProgress } from "@/lib/progress";
 import DebugResetButton from "@/components/DebugResetButton";
-// ────────────────────────────────────────────────────────────────
 
-// ── map component ───────────────────────────────────────────────
 import MapComponent, {
   MAP_LOCATIONS,
   type LocationName,
 } from "@/components/MapComponent";
-// ────────────────────────────────────────────────────────────────
 
 const sifonn = localFont({
   src: "../fonts/Sifonn.otf",
@@ -31,11 +27,14 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const pressStart = Press_Start_2P({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
 const extrude = Array.from({ length: 18 }, (_, i) => `${((i + 1) * 0.0161).toFixed(4)}em ${((i + 1) * 0.0161).toFixed(4)}em 0 #000`).join(", ");
 
-/* ==========================================
-   ASSET PATHS
-   ========================================== */
 const IMG = "/images/map";
 const ASSETS = {
   aaliyah1: `${IMG}/aaliyah1.png`,
@@ -59,9 +58,6 @@ const ASSETS = {
 
 const LOCK_BUTTONS_DURING_TUTORIAL = true;
 
-/* ==========================================
-   SEQUENCES
-   ========================================== */
 type Step = { img: string; ms: number | null; hand?: boolean; fiarce?: boolean; glitch?: boolean };
 
 const INTRO: Step[] = [
@@ -102,11 +98,8 @@ const FRAMES = [
   ASSETS.happy1, ASSETS.happy2, ASSETS.happy3,
 ];
 
-type Phase = "intro" | "scary" | "happy" | "empty" | "video";
+type Phase = "intro" | "scary" | "postScary" | "happy" | "empty" | "video";
 
-/* ==========================================
-   OVERLAYS
-   ========================================== */
 function HandOverlay() {
   const lib = MAP_LOCATIONS.find((l) => l.name === "Library");
   if (!lib) return null;
@@ -142,23 +135,21 @@ function FiarceOverlay() {
   );
 }
 
-/* ==========================================
-   COMPONENT
-   ========================================== */
 export default function MapPage() {
   const router = useRouter();
 
-  // Subscribe to progress for reactive updates (e.g. debug reset)
   const progress = useProgress();
   const visited = progress.libraryVisited;
   const happyPlayed = progress.happySequencePlayed;
   const hasStartedGame = progress.hasStartedGame;
+  const titleTransitioned = progress.titleTransitioned;
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [step, setStep] = useState(0);
   const [started, setStarted] = useState(false);
   const [runId, setRunId] = useState(0);
   const [hydrated, setHydrated] = useState(false);
+  const [showHoverPulse, setShowHoverPulse] = useState(false);
 
   const isHappyFinished = phase === "happy" && (step === HAPPY.length - 1 || happyPlayed);
 
@@ -172,7 +163,6 @@ export default function MapPage() {
     setHydrated(true);
   }, []);
 
-  // ── mount / decide phase ───────────────────────────────────
   useEffect(() => {
     if (!hydrated) return;
 
@@ -181,7 +171,6 @@ export default function MapPage() {
     const hasPlayedHappy = current.happySequencePlayed;
     const hasStarted = current.hasStartedGame;
 
-    // 1. Happy sequence already played ever -> final state, no replay
     if (hasVisited && hasPlayedHappy) {
       setPhase("happy");
       setStep(HAPPY.length - 1);
@@ -189,26 +178,25 @@ export default function MapPage() {
       return;
     }
 
-    // 2. First time visitor (or hasn't pressed start yet) -> intro
     if (!hasVisited) {
       let cancelled = false;
       const tutorial = new Audio(ASSETS.tutorialAudio);
       const scary = new Audio(ASSETS.scaryAudio);
       scary.preload = "auto";
+      tutorial.volume = 1.0;
+      scary.volume = 1.0;
       tutorialRef.current = tutorial;
       scaryRef.current = scary;
 
-      // If they already started previously, auto-play but skip the black screen
       if (hasStarted) {
         tutorial.play().then(() => {
           if (!cancelled) setStarted(true);
         }).catch(() => {
-          if (!cancelled) setStarted(false); 
+          if (!cancelled) setStarted(false);
         });
         return () => { cancelled = true; tutorial.pause(); scary.pause(); };
       }
 
-      // If they haven't started, we wait for the user to click the black screen overlay.
       return () => {
         cancelled = true;
         tutorial.pause();
@@ -216,36 +204,39 @@ export default function MapPage() {
       };
     }
 
-    // 3. Visited Library but happy NOT yet played -> play happy sequence
     if (hasVisited && !hasPlayedHappy) {
       setPhase("happy");
       setStep(0);
       setStarted(true);
       return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, runId]);
 
-  // ── play happy audio once, at the very start of the sequence ─
   useEffect(() => {
-    if (
-      phase === "happy" &&
-      !happyPlayed &&
-      started &&
-      step === 0 &&
-      !happyStartedRef.current
-    ) {
+    if (phase === "happy" && !happyPlayed && started && step === 0 && !happyStartedRef.current) {
       happyStartedRef.current = true;
       writeProgress({ happySequencePlayed: true });
-
       const happy = new Audio(ASSETS.happyAudio);
+      happy.volume = 1.0;
       happyRef.current = happy;
       happy.play().catch(() => {});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, started, step]);
 
-  // ── step timer ─────────────────────────────────────────────
+  useEffect(() => {
+    if (isHappyFinished && !titleTransitioned) {
+      writeProgress({ titleTransitioned: true });
+    }
+  }, [isHappyFinished, titleTransitioned]);
+
+  useEffect(() => {
+    if (isHappyFinished) {
+      setShowHoverPulse(true);
+      const t = setTimeout(() => setShowHoverPulse(false), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [isHappyFinished]);
+
   useEffect(() => {
     if (!started) return;
     const list = phase === "intro" ? INTRO : phase === "scary" ? SCARY : phase === "happy" ? HAPPY : null;
@@ -286,14 +277,10 @@ export default function MapPage() {
     };
   }, []);
 
-  // The click event for the black screen inside the map
   const handleStartClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent bubbling issues
-    
-    if (!hasStartedGame) {
-      writeProgress({ hasStartedGame: true });
-    }
-    
+    e.stopPropagation();
+    if (!hasStartedGame) writeProgress({ hasStartedGame: true });
+
     if (tutorialRef.current) {
       tutorialRef.current.play()
         .then(() => setStarted(true))
@@ -304,7 +291,8 @@ export default function MapPage() {
   };
 
   const handleLocation = (name: LocationName, href: string) => {
-    if (phase !== "intro" && !isHappyFinished) return;
+    if (phase !== "intro" && phase !== "postScary" && !isHappyFinished) return;
+    if (phase === "postScary" && name !== "Library") return;
 
     if (name === "Library") {
       tutorialRef.current?.pause();
@@ -331,11 +319,10 @@ export default function MapPage() {
   };
 
   const restart = () => {
-    setPhase("intro");
+    setPhase("postScary");
     setStep(0);
-    setStarted(false);
+    setStarted(true);
     happyStartedRef.current = false;
-    setRunId((r) => r + 1);
   };
 
   const current: Step | null =
@@ -347,23 +334,35 @@ export default function MapPage() {
     (phase === "intro" &&
       started &&
       (visited || !LOCK_BUTTONS_DURING_TUTORIAL || step === INTRO.length - 1)) ||
+    (phase === "postScary") ||
     (visited && isHappyFinished);
 
-  const showHand = !!current?.hand && !visited;
+  const showHand = (!!current?.hand && !visited) || phase === "postScary";
   const showFiarce = !!current?.fiarce && !visited;
 
-  const bubbleClassA = phase === "scary" ? "" : "bubble-float-a";
-  const bubbleClassB = phase === "scary" ? "" : "bubble-float-b";
+  const bubblesFrozen =
+    phase === "scary" ||
+    phase === "empty" ||
+    phase === "video" ||
+    phase === "postScary";
 
-  const showCampusMapText = isHappyFinished;
-  
-  // Determine if we need to show the black screen overlay inside the MapComponent
+  const bubbleClassA = bubblesFrozen ? "bubble-frozen-a" : "bubble-float-a";
+  const bubbleClassB = bubblesFrozen ? "bubble-frozen-b" : "bubble-float-b";
+
+  const showCampusMapText = !!titleTransitioned;
   const needsTap = !visited && !hasStartedGame;
+  const hideAaliyah = needsTap || phase === "postScary";
 
-  // Passed into the MapComponent's overlay prop
-  // FIXED: Added pointer-events-auto to override parent's pointer-events-none
+  // ONLY the scary sequence disables audio control. After the jumpscare, it's
+  // fully interactive again (but the BGM stays silent until the user toggles it
+  // or navigates away and back, because we don't auto-resume after jumpscare).
+  const muteForced =
+    phase === "scary" ||
+    phase === "empty" ||
+    phase === "video";
+
   const mapOverlay = needsTap ? (
-    <button 
+    <button
       type="button"
       onClick={handleStartClick}
       className="pointer-events-auto absolute inset-0 z-[60] bg-black flex items-center justify-center w-full h-full cursor-pointer hover:bg-[#111] transition-colors"
@@ -397,6 +396,15 @@ export default function MapPage() {
         }
         .bubble-float-a { animation: bubble-float-a 3.6s ease-in-out infinite; }
         .bubble-float-b { animation: bubble-float-b 4.4s ease-in-out infinite 0.8s; }
+
+        .bubble-frozen-a {
+          animation: none !important;
+          transform: translateY(-0.6vw) rotate(1.5deg);
+        }
+        .bubble-frozen-b {
+          animation: none !important;
+          transform: translate(0.3vw, -0.8vw) rotate(-1.5deg);
+        }
 
         @keyframes hand-tap {
           0%   { transform: translate(60%, 60%) scale(1); opacity: 0; }
@@ -442,15 +450,12 @@ export default function MapPage() {
         <SchoolHeader />
       </div>
 
-      {/* ==============================================================
-          DESKTOP LAYOUT
-          ============================================================== */}
       <div className="hidden md:block w-full h-full">
         <div
           className={`${sifonn.className} pointer-events-none absolute z-30 grid grid-cols-1 leading-[0.9]`}
-          style={{ 
+          style={{
             left: "5.4vw", top: "6.2vw", fontSize: "4.4vw",
-            opacity: needsTap ? 0 : 1, 
+            opacity: needsTap ? 0 : 1,
             transition: "opacity 0.5s ease-in-out"
           }}
         >
@@ -491,13 +496,12 @@ export default function MapPage() {
           </div>
         </div>
 
-        {/* DESKTOP MAP CONTAINER */}
         <div
           className="absolute z-20 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
           style={{
             width: "55.7vw",
+            top: "55%",
             right: needsTap ? "50%" : "5vw",
-            top: needsTap ? "50%" : "55%",
             transform: needsTap ? "translate(50%, -50%) scale(1.05)" : "translate(0%, -50%) scale(1)",
           }}
         >
@@ -505,21 +509,30 @@ export default function MapPage() {
             onLocationClick={handleLocation}
             disabled={!canClick}
             pressedLocation={showHand ? "Library" : undefined}
-            fontClassName={plexMono.className}
+            hoverOnly={phase === "postScary" ? "Library" : undefined}
+            forceHoverAll={showHoverPulse}
+            muteForced={muteForced}
+            fontClassName={pressStart.className}
             overlay={mapOverlay}
           />
         </div>
 
         <div
-          className={`pointer-events-none absolute z-30 ${current?.glitch ? "glitch" : ""}`}
-          style={{ 
+          className={`pointer-events-none absolute z-[100] ${current?.glitch ? "glitch" : ""}`}
+          style={{
             left: "-17.5vw", top: "9.7vw", width: "88.2vw",
-            opacity: needsTap ? 0 : 1, 
-            transition: "opacity 0.7s ease-in-out" 
+            opacity: hideAaliyah ? 0 : 1,
+            transition: "opacity 0.7s ease-in-out"
           }}
         >
           {FRAMES.map((src, i) => {
-            const isHappyFrame = src === ASSETS.happy2 || src === ASSETS.happy3;
+            const isHappy1 = src === ASSETS.happy1;
+            const isHappy2Or3 = src === ASSETS.happy2 || src === ASSETS.happy3;
+
+            let transform = "scale(1)";
+            if (isHappy1) transform = "scale(0.9) translateY(-20%)";
+            else if (isHappy2Or3) transform = "scale(0.9) translateY(-11%)";
+
             return (
               <Image
                 key={src}
@@ -532,7 +545,7 @@ export default function MapPage() {
                 className={`h-auto w-full ${i === 0 ? "relative block" : "absolute left-0 top-0"}`}
                 style={{
                   opacity: current?.img === src ? 1 : 0,
-                  transform: isHappyFrame ? "scale(0.9)" : "scale(1)",
+                  transform,
                   transformOrigin: "bottom center",
                 }}
               />
@@ -548,13 +561,10 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* ==============================================================
-          MOBILE LAYOUT
-          ============================================================== */}
       <div className="flex md:hidden flex-col items-center justify-center w-full h-full px-4 pt-24 pb-8 gap-4">
-        <div 
-          className={`${sifonn.className} relative z-40 grid grid-cols-1 leading-[0.9] text-center mb-2 w-full flex justify-center`} 
-          style={{ 
+        <div
+          className={`${sifonn.className} relative z-40 grid grid-cols-1 leading-[0.9] text-center mb-2 w-full flex justify-center`}
+          style={{
             fontSize: "clamp(2.5rem, 12vw, 3.5rem)",
             opacity: needsTap ? 0 : 1,
             transition: "opacity 0.5s ease-in-out"
@@ -586,12 +596,18 @@ export default function MapPage() {
           </div>
         </div>
 
-        <div 
-          className={`relative w-full max-w-[18rem] pointer-events-none mt-4 ${current?.glitch ? "glitch" : ""}`}
-          style={{ opacity: needsTap ? 0 : 1, transition: "opacity 0.7s ease-in-out" }}
+        <div
+          className={`relative w-full max-w-[18rem] pointer-events-none mt-4 z-[100] ${current?.glitch ? "glitch" : ""}`}
+          style={{ opacity: hideAaliyah ? 0 : 1, transition: "opacity 0.7s ease-in-out" }}
         >
           {FRAMES.map((src, i) => {
-            const isHappyFrame = src === ASSETS.happy2 || src === ASSETS.happy3;
+            const isHappy1 = src === ASSETS.happy1;
+            const isHappy2Or3 = src === ASSETS.happy2 || src === ASSETS.happy3;
+
+            let transform = "scale(1)";
+            if (isHappy1) transform = "scale(0.9) translateY(-20%)";
+            else if (isHappy2Or3) transform = "scale(0.9) translateY(-6%)";
+
             return (
               <Image
                 key={src}
@@ -604,7 +620,7 @@ export default function MapPage() {
                 className={`h-auto w-full ${i === 0 ? "relative block" : "absolute left-0 top-0"}`}
                 style={{
                   opacity: current?.img === src ? 1 : 0,
-                  transform: isHappyFrame ? "scale(0.9)" : "scale(1)",
+                  transform,
                   transformOrigin: "bottom center",
                 }}
               />
@@ -612,8 +628,7 @@ export default function MapPage() {
           })}
         </div>
 
-        {/* MOBILE MAP CONTAINER */}
-        <div 
+        <div
           className="relative z-20 w-full max-w-[20rem] mt-auto transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
           style={{
             position: needsTap ? "fixed" : "relative",
@@ -627,7 +642,10 @@ export default function MapPage() {
             onLocationClick={handleLocation}
             disabled={!canClick}
             pressedLocation={showHand ? "Library" : undefined}
-            fontClassName={plexMono.className}
+            hoverOnly={phase === "postScary" ? "Library" : undefined}
+            forceHoverAll={showHoverPulse}
+            muteForced={muteForced}
+            fontClassName={pressStart.className}
             overlay={mapOverlay}
           />
         </div>
@@ -648,6 +666,7 @@ export default function MapPage() {
           playsInline
           onEnded={restart}
           onError={restart}
+          volume={1.0}
           className="fixed inset-0 z-[200] h-full w-full bg-black object-cover"
         />
       )}

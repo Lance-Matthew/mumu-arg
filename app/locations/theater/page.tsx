@@ -21,6 +21,10 @@ const plexMono = IBM_Plex_Mono({
 
 const YELLOW = "#ffe793";
 
+// Cloudflare Stream HLS manifest for the "Tour with Ali" video
+const TOUR_VIDEO_SRC =
+  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/7e9f60c3852ab7f7022ab5ea46730182/manifest/video.m3u8";
+
 function CreamHeading({
   children,
   fontClass,
@@ -83,7 +87,7 @@ export default function TheaterPage() {
       description: "Placeholder 3 text goes here. Cras ac massa vulputate, pellentesque erat id."
     },
     {
-      src: "/images/theater/whitelady.jpg",
+      src: "/images/theater/whiteLady.png",
       title: "White Lady",
       description: "Placeholder 4 text goes here. Sed aliquet porta rutrum. Nunc pretium, enim quis sodales."
     },
@@ -378,7 +382,7 @@ export default function TheaterPage() {
             </div>
           </div>
 
-          <VideoFrame src="/videos/D.mp4" />
+          <VideoFrame src={TOUR_VIDEO_SRC} />
 
         </div>
       </section>
