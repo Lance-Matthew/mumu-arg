@@ -660,16 +660,15 @@ export default function MapPage() {
       )}
 
       {phase === "video" && (
-        <video
-          src={ASSETS.jumpscare}
-          autoPlay
-          playsInline
-          onEnded={restart}
-          onError={restart}
-          volume={1.0}
-          className="fixed inset-0 z-[200] h-full w-full bg-black object-cover"
-        />
-      )}
+  <video
+    src={ASSETS.jumpscare}
+    autoPlay
+    playsInline
+    onEnded={restart}
+    onError={restart}
+    className="fixed inset-0 z-[200] h-full w-full bg-black object-cover"
+  />
+)}
     </main>
   );
 }
