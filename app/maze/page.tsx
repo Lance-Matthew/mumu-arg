@@ -22,6 +22,7 @@ const COLORS = {
   label: "#e3efcf",
   placeholder: "#c8c8c8",
   placeholderBorder: "#8c8c8c",
+  hotRed: "#ff0033",
 };
 
 type Ending = "Ending 1" | "Ending 2" | null;
@@ -62,11 +63,13 @@ const YELLOW_POLYGON: Point[] = [
   { x: 826, y: 98 },
 ];
 
-const START: Point = { x: 582, y: 375 };
+// Shifted starting position to the right by 0.5% (was 582, now 588)
+const START: Point = { x: 588, y: 375 }; 
 const EXIT_1 = { x: 849, y: 90 };   // Top-right → /ending/gray
 const EXIT_2 = { x: 333, y: 603 };  // Bottom-left edge → /ending/red
 
-const PLAYER_RADIUS = 8;
+// Reduced by 10% (was 8)
+const PLAYER_RADIUS = 7.2; 
 const PATH_COLLISION_PADDING = 0;
 const WALL_HIT_OUTSIDE_RATIO = 0.4;
 const COLLISION_SAMPLES = 40;
@@ -77,12 +80,9 @@ const EXIT_RADIUS = 38;
 const AALIYAH_IMAGE_SRC = "/aaliyah.png";
 
 const IMG_DIR = "/images/maze";
-const CURSOR_SRC = `${IMG_DIR}/mazeCursor.png`;
 const GATE_SRC = `${IMG_DIR}/mazeGate.png`;
-const CURSOR_HEIGHT = 38;
 const GATE_HEIGHT = 70;
 const GATE_ROTATION = Math.PI / 2;
-const CURSOR_TIP = { x: 0.5, y: 1 };
 
 const TOP_TEXT_START = "Click this icon to start";
 const TOP_TEXT_RETRY = "Click this icon to try again";
@@ -155,7 +155,7 @@ const PLACEHOLDER_SIZE = 50;
 
 function drawDoorDashes(ctx: CanvasRenderingContext2D) {
   ctx.save();
-  ctx.strokeStyle = COLORS.green; // Changed to green
+  ctx.strokeStyle = COLORS.green;
   ctx.lineWidth = DASH_THICKNESS;
   ctx.lineCap = "butt";
   ctx.setLineDash(DASH_PATTERN);
@@ -468,7 +468,6 @@ export default function MazePage() {
 
   useEffect(() => {
     const sources: Record<string, string> = {
-      cursor: CURSOR_SRC,
       gate: GATE_SRC,
     };
     ROOMS.forEach((room) => {
@@ -525,28 +524,16 @@ export default function MazePage() {
     }
 
     if (started) {
-      const cursorImg = imagesRef.current.cursor;
-      if (cursorImg) {
-        drawImageAnchored(
-          ctx,
-          cursorImg,
-          cursor.x,
-          cursor.y,
-          CURSOR_HEIGHT,
-          CURSOR_TIP.x,
-          CURSOR_TIP.y
-        );
-      } else {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cursor.x, cursor.y, PLAYER_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = COLORS.bg;
-        ctx.fill();
-        ctx.strokeStyle = COLORS.white;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.restore();
-      }
+      // Draw the player as a circle with hot red border and black inside
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cursor.x, cursor.y, PLAYER_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = COLORS.bg; // Inside is now black
+      ctx.fill();
+      ctx.strokeStyle = COLORS.hotRed; // Border is hot red
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.restore();
     }
   }, [cursor, ending, aaliyahFlash, imagesTick, scale, started]);
 
@@ -603,11 +590,11 @@ export default function MazePage() {
         @keyframes mazeCursorPulse {
           0%, 100% {
             transform: translate(var(--tip-x), var(--tip-y)) scale(1);
-            filter: drop-shadow(0 0 0 rgba(255, 120, 150, 0));
+            filter: drop-shadow(0 0 0 rgba(255, 0, 51, 0));
           }
           50% {
             transform: translate(var(--tip-x), var(--tip-y)) scale(1.3);
-            filter: drop-shadow(0 0 8px rgba(255, 120, 150, 0.9));
+            filter: drop-shadow(0 0 8px rgba(255, 0, 51, 0.9));
           }
         }
       `}</style>
@@ -620,12 +607,8 @@ export default function MazePage() {
           <span>{TOP_TEXT_PLAYING}</span>
         ) : (
           <>
-            <img
-              src={CURSOR_SRC}
-              alt=""
-              draggable={false}
-              className="block h-[2em] w-auto select-none"
-            />
+            {/* Replaced the image cursor with a stylized circle matching the player */}
+            <div className="block h-[2em] w-[2em] rounded-full border-[3px] border-[#ff0033] bg-black select-none" />
             <span>{hasRetried ? TOP_TEXT_RETRY : TOP_TEXT_START}</span>
           </>
         )}
@@ -657,20 +640,17 @@ export default function MazePage() {
             style={{
               left: `${(START.x / CANVAS_W) * 100}%`,
               top: `${(START.y / CANVAS_H) * 100}%`,
-              height: `${(CURSOR_HEIGHT / CANVAS_H) * 100}%`,
+              // Scale the button based on the PLAYER_RADIUS relative to the canvas size
+              width: `${((PLAYER_RADIUS * 2) / CANVAS_H) * 100}%`,
+              aspectRatio: "1 / 1",
               animation: "mazeCursorPulse 1.2s ease-in-out infinite",
-              transformOrigin: `${CURSOR_TIP.x * 100}% ${CURSOR_TIP.y * 100}%`,
-              "--tip-x": `-${CURSOR_TIP.x * 100}%`,
-              "--tip-y": `-${CURSOR_TIP.y * 100}%`,
+              transformOrigin: "center center",
+              "--tip-x": "-50%",
+              "--tip-y": "-50%",
             } as React.CSSProperties}
-            className="absolute z-10 cursor-pointer border-0 bg-transparent p-0"
+            className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer border-0 bg-transparent p-0"
           >
-            <img
-              src={CURSOR_SRC}
-              alt=""
-              draggable={false}
-              className="block h-full w-auto select-none"
-            />
+            <div className="h-full w-full rounded-full border-[3px] border-[#ff0033] bg-black" />
           </button>
         )}
 
@@ -681,7 +661,6 @@ export default function MazePage() {
               alt="Aaliyah"
               className="h-full w-full object-cover"
             />
-
             <div className="absolute inset-0 bg-red-500/10" />
           </div>
         )}
