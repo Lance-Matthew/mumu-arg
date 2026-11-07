@@ -63,15 +63,18 @@ const YELLOW_POLYGON: Point[] = [
   { x: 826, y: 98 },
 ];
 
-// Shifted starting position to the right by 0.5% (was 582, now 588)
-const START: Point = { x: 588, y: 375 }; 
+// Starting position shifted 5px to the right (was 588, now 593)
+const START: Point = { x: 593, y: 375 };
 const EXIT_1 = { x: 849, y: 90 };   // Top-right → /ending/gray
 const EXIT_2 = { x: 333, y: 603 };  // Bottom-left edge → /ending/red
 
-// Reduced by 10% (was 8)
-const PLAYER_RADIUS = 7.2; 
+// Size of the pulsing start button (before it's clicked)
+const PLAYER_RADIUS = 7.2;
+// Smaller size once the player has clicked it and is playing (drawn + used for collision)
+const PLAYING_RADIUS = 5;
 const PATH_COLLISION_PADDING = 0;
-const WALL_HIT_OUTSIDE_RATIO = 0.4;
+// Jumpscare triggers only when MORE than 5% of the player is touching the wall
+const WALL_HIT_OUTSIDE_RATIO = 0.05;
 const COLLISION_SAMPLES = 40;
 const FLASH_DURATION_MS = 500;
 
@@ -352,8 +355,8 @@ function getWallOutsideRatio(x: number, y: number) {
   for (let i = 0; i < COLLISION_SAMPLES; i++) {
     const angle = (i / COLLISION_SAMPLES) * Math.PI * 2;
     const sample = {
-      x: x + Math.cos(angle) * PLAYER_RADIUS,
-      y: y + Math.sin(angle) * PLAYER_RADIUS,
+      x: x + Math.cos(angle) * PLAYING_RADIUS,
+      y: y + Math.sin(angle) * PLAYING_RADIUS,
     };
 
     if (!isInsideExpandedPath(sample)) {
@@ -365,7 +368,8 @@ function getWallOutsideRatio(x: number, y: number) {
 }
 
 function isWallCollision(x: number, y: number) {
-  return getWallOutsideRatio(x, y) >= WALL_HIT_OUTSIDE_RATIO;
+  // Strictly more than 5% of the player touching the wall
+  return getWallOutsideRatio(x, y) > WALL_HIT_OUTSIDE_RATIO;
 }
 
 function drawImageAnchored(
@@ -527,11 +531,11 @@ export default function MazePage() {
       // Draw the player as a circle with hot red border and black inside
       ctx.save();
       ctx.beginPath();
-      ctx.arc(cursor.x, cursor.y, PLAYER_RADIUS, 0, Math.PI * 2);
-      ctx.fillStyle = COLORS.bg; // Inside is now black
+      ctx.arc(cursor.x, cursor.y, PLAYING_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = COLORS.bg; // Inside is black
       ctx.fill();
       ctx.strokeStyle = COLORS.hotRed; // Border is hot red
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 2;
       ctx.stroke();
       ctx.restore();
     }
@@ -607,7 +611,7 @@ export default function MazePage() {
           <span>{TOP_TEXT_PLAYING}</span>
         ) : (
           <>
-            {/* Replaced the image cursor with a stylized circle matching the player */}
+            {/* Stylized circle matching the player */}
             <div className="block h-[2em] w-[2em] rounded-full border-[3px] border-[#ff0033] bg-black select-none" />
             <span>{hasRetried ? TOP_TEXT_RETRY : TOP_TEXT_START}</span>
           </>
