@@ -256,11 +256,11 @@ export default function SportsCenterPage() {
               Using a 6-col grid so the bottom pair sits in the gaps of the top row. */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-6 md:gap-6">
             <CourseCard title="PEDNC" tilt="-1.2deg" pinColor={PIN_COLORS[0]} className="md:col-span-2">
-              <b>D</b>ance - Students will learn the basics of dance to improve their coordination and master
-              the foundational rhythm, choreography, and movement.
+              Dance - Stu<b>D</b>ents will learn the basics of dance to improve their coordination and master
+              the foundatio<b>N</b>al rhythm, choreography, and movement.
             </CourseCard>
             <CourseCard title="PEMMA" tilt="1.2deg" pinColor={PIN_COLORS[1]} className="md:col-span-2">
-              Mixed Martial Arts - Students will lear<b>N</b> mixed martial arts for practical defense techniques,
+              Mixed Martial Arts - Students will learn mixed martial arts for practical defense techniques,
               striking the fundament<b>A</b>ls, and t<b>A</b>ctical discipline in a safe setting.
             </CourseCard>
             <CourseCard title="PEPKL" tilt="-1.2deg" pinColor={PIN_COLORS[2]} className="md:col-span-2">

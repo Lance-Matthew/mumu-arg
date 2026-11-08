@@ -110,8 +110,11 @@ function RetroTVPlayer() {
 
   const toggleFullscreen = async () => {
     try {
-      if (!document.fullscreenElement) await frameRef.current?.requestFullscreen();
-      else await document.exitFullscreen();
+      const v = videoRef.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+      if (!document.fullscreenElement) {
+        if (frameRef.current?.requestFullscreen) await frameRef.current.requestFullscreen();
+        else v?.webkitEnterFullscreen?.();
+      } else await document.exitFullscreen();
     } catch {}
   };
 
@@ -162,7 +165,7 @@ function RetroTVPlayer() {
   };
 
   return (
-    <div className="w-full max-w-md md:max-w-lg">
+    <div className="w-full max-w-md mx-auto md:max-w-none md:mx-0">
       <div className="tv-scale-wrap">
         <div className="relative">
           <div className="tv-antenna" aria-hidden="true">
@@ -233,7 +236,7 @@ function RetroTVPlayer() {
                       type="button"
                       onClick={togglePlay}
                       aria-label="Pause tour video"
-                      className="flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
+                      className="flex h-10 w-10 md:h-9 md:w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
                       style={{ background: YELLOW }}
                     >
                       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
@@ -250,7 +253,7 @@ function RetroTVPlayer() {
                     void toggleFullscreen();
                   }}
                   aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                  className="absolute top-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
+                  className="absolute top-3 right-3 z-20 flex h-10 w-10 md:h-9 md:w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
                   style={{ background: YELLOW }}
                 >
                   {isFullscreen ? (
@@ -285,7 +288,7 @@ function RetroTVPlayer() {
                         type="button"
                         onClick={toggleMute}
                         aria-label={volume === 0 ? "Unmute" : "Mute"}
-                        className="flex h-7 w-7 items-center justify-center text-white opacity-90 transition-opacity hover:opacity-100"
+                        className="flex h-9 w-9 md:h-7 md:w-7 items-center justify-center text-white opacity-90 transition-opacity hover:opacity-100"
                       >
                         {volume === 0 ? (
                           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
@@ -299,7 +302,7 @@ function RetroTVPlayer() {
                       </button>
                       <input
                         type="range"
-                        className="video-range w-20 md:w-24"
+                        className="video-range w-16 sm:w-20 md:w-24"
                         min={0}
                         max={100}
                         step={1}
@@ -361,7 +364,7 @@ function RetroSubtitle({ fontClass }: { fontClass: string }) {
   const layer = "col-start-1 row-start-1";
   const stroke = { paintOrder: "stroke fill" } as const;
   return (
-    <h2 className={`${fontClass} grid w-full grid-cols-1 text-center text-[clamp(1.5rem,5.2vw,4.75rem)] leading-[1.1]`}>
+    <h2 className={`${fontClass} grid w-full grid-cols-1 text-center text-[clamp(1.25rem,5.2vw,4.75rem)] leading-[1.1]`}>
       <span aria-hidden="true" className={layer} style={{ ...stroke, color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude }}>'26-'27 Retro Takeover</span>
       <span className={layer} style={{ ...stroke, color: "#ffeb99", WebkitTextStroke: "0.08em #000" }}>'26-'27 Retro Takeover</span>
     </h2>
@@ -374,7 +377,7 @@ function FreshieTerm({ fontClass }: { fontClass: string }) {
   const shift = { transform: `translate(${o}, ${o})` };
   const behind = { paintOrder: "stroke fill" } as const;
   return (
-    <h1 className={`${fontClass} grid text-[clamp(2.75rem,15vw,14rem)] leading-[0.9]`}>
+    <h1 className={`${fontClass} grid text-[clamp(2.25rem,min(14vw,26svh),14rem)] leading-[0.9]`}>
       <span aria-hidden="true" className={layer} style={{ ...behind, ...shift, color: "#ffeab0", WebkitTextStroke: "0.045em #ffeab0" }}>Freshie Term</span>
       <span aria-hidden="true" className={layer} style={{ ...behind, ...shift, color: "#000", WebkitTextStroke: "0.02em #f7b6a0" }}>Freshie Term</span>
       <span aria-hidden="true" className={layer} style={{ color: "transparent", WebkitTextStroke: "0.04em #ffeab0" }}>Freshie Term</span>
@@ -420,7 +423,7 @@ function AdventureHeading({ fontClass }: { fontClass: string }) {
   }).join(", ");
   const soft = "0.16em 0.26em 0.22em rgba(0, 0, 0, 0.3)";
   return (
-    <h2 className={`${fontClass} grid grid-cols-1 leading-[1.05]`} style={{ fontSize: "clamp(1.9rem, 9.5cqw, 4.5rem)" }}>
+    <h2 className={`${fontClass} grid grid-cols-1 leading-[1.05]`} style={{ fontSize: "clamp(1.9rem, 9.5vw, 4.5rem)" }}>
       <span aria-hidden="true" className={layer} style={{ color: "#2f58a0", textShadow: `${extrusion}, ${soft}` }}>Adventure Awaits</span>
       <span className={layer} style={{ color: "#000" }}>Adventure Awaits</span>
     </h2>
@@ -437,6 +440,7 @@ function InlineHamburger() {
   );
 }
 
+// SHAPE CLUSTERS FOR SECTION 2
 type ShapeSpec = {
   src: string;
   top: string;
@@ -495,18 +499,6 @@ const S2_TOP_LEFT: ShapeSpec[] = [
   { src: "/images/shapes/fita1.png", top: "0%", left: "55%", size: "48", anim: "anim-path-1", wiggle: "anim-wiggle-3", drop: "[filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]", rotate: "rotate(0deg)" },
 ];
 
-const S3_TOP: ShapeSpec[] = [
-  { src: "/images/shapes/dorito.png", top: "0%", left: "0%", size: "40", anim: "anim-path-2", wiggle: "anim-wiggle-1", drop: "[filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]", rotate: "rotate(10deg)" },
-  { src: "/images/shapes/noodle2.png", top: "20%", left: "35%", size: "56", anim: "anim-path-3", wiggle: "anim-wiggle-2", drop: "[filter:drop-shadow(1.5px_0_0_#fff0a3)_drop-shadow(-1.5px_0_0_#fff0a3)_drop-shadow(0_1.5px_0_#fff0a3)_drop-shadow(0_-1.5px_0_#fff0a3)]", rotate: "rotate(-140deg)" },
-  { src: "/images/shapes/fita1.png", top: "0%", left: "55%", size: "56", anim: "anim-path-1", wiggle: "anim-wiggle-3", drop: "[filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]", rotate: "rotate(180deg)" },
-];
-
-const S3_BOTTOM: ShapeSpec[] = [
-  { src: "/images/shapes/dorito.png", top: "0%", left: "8%", size: "40", anim: "anim-path-2", wiggle: "anim-wiggle-1", drop: "[filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]", rotate: "rotate(-30deg)" },
-  { src: "/images/shapes/noodle1.png", top: "15%", left: "35%", size: "56", anim: "anim-path-3", wiggle: "anim-wiggle-2", drop: "[filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]", rotate: "rotate(-170deg)" },
-  { src: "/images/shapes/fita2.png", top: "40%", left: "24%", size: "56", anim: "anim-path-1", wiggle: "anim-wiggle-3", drop: "[filter:drop-shadow(1.5px_0_0_#fff0a3)_drop-shadow(-1.5px_0_0_#fff0a3)_drop-shadow(0_1.5px_0_#fff0a3)_drop-shadow(0_-1.5px_0_#fff0a3)]", rotate: "rotate(15deg)" },
-];
-
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -524,7 +516,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main ref={containerRef} className="no-scrollbar h-[100svh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth bg-[#fafaf8]">
+    <main ref={containerRef} className="no-scrollbar h-[100svh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory [@media(max-height:600px)]:snap-proximity scroll-smooth bg-[#fafaf8]">
       <style>{`
         @keyframes wiggle1 { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
         @keyframes wiggle2 { 0%, 100% { transform: rotate(10deg); } 50% { transform: rotate(-15deg); } }
@@ -557,7 +549,7 @@ export default function Home() {
         .slide-up-anim { opacity: 0; transform: translateY(60px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
         .slide-up-anim.active { opacity: 1; transform: translateY(0); }
 
-        input[type="range"].video-range { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; --fill: 0%; }
+        input[type="range"].video-range { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; --fill: 0%; height: 20px; }
         input[type="range"].video-range::-webkit-slider-runnable-track {
           height: 6px; border-radius: 3px;
           background: linear-gradient(to right, ${YELLOW} 0%, ${YELLOW} var(--fill), rgba(255,255,255,0.25) var(--fill), rgba(255,255,255,0.25) 100%);
@@ -572,6 +564,12 @@ export default function Home() {
           height: 14px; width: 14px; border-radius: 50%; background: ${YELLOW}; border: 2px solid #1f2329; box-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
         input[type="range"].video-range:focus { outline: none; }
+
+        @media (pointer: coarse) {
+          input[type="range"].video-range { height: 28px; }
+          input[type="range"].video-range::-webkit-slider-thumb { height: 20px; width: 20px; margin-top: -7px; }
+          input[type="range"].video-range::-moz-range-thumb { height: 20px; width: 20px; }
+        }
 
         [data-video-frame]:fullscreen {
           aspect-ratio: auto !important; width: 100vw !important; height: 100vh !important; border: none !important;
@@ -627,8 +625,15 @@ export default function Home() {
         }
 
         .tv-scale-wrap { transform: scale(1); transform-origin: center center; }
-        @media (min-width: 768px) { .tv-scale-wrap { transform: scale(1.25); } }
-        @media (min-width: 1024px) { .tv-scale-wrap { transform: scale(1.5); } }
+        @media (min-width: 768px) { .tv-scale-wrap { transform: scale(1.05); } }
+        @media (min-width: 1024px) { .tv-scale-wrap { transform: scale(1.0); } }
+
+        @media (prefers-reduced-motion: reduce) {
+          .anim-wiggle-1, .anim-wiggle-2, .anim-wiggle-3,
+          .anim-path-1, .anim-path-2, .anim-path-3,
+          .inline-hamburger { animation: none; }
+          .slide-up-anim { transition: none; transform: none; }
+        }
       `}</style>
 
       <div className="fixed top-0 left-0 z-50 w-full">
@@ -648,7 +653,7 @@ export default function Home() {
 
         <div className="relative z-10 flex flex-1 items-center justify-center px-4 pb-24 pt-24 sm:px-8 sm:pb-28">
           <div className="mx-auto grid w-full max-w-3xl grid-cols-1 items-center gap-8 sm:gap-10 md:grid-cols-[280px_minmax(0,1fr)] md:gap-12 lg:max-w-5xl lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
-            <div className="mx-auto flex w-full max-w-[180px] items-center justify-center md:max-w-none slide-up-anim sm:max-w-[260px]">
+            <div className="mx-auto flex w-full max-w-[min(180px,28svh)] items-center justify-center md:max-w-none slide-up-anim sm:max-w-[min(260px,34svh)]">
               <div className="relative aspect-square w-full drop-shadow-[8px_12px_4px_rgba(0,0,0,0.8)]">
                 <Image src="/images/main/seal.png" alt="University of Santo Fiarce seal" fill priority sizes="(max-width: 767px) 180px, 320px" className="object-contain" />
               </div>
@@ -671,7 +676,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}
-          className="group absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 border-0 bg-transparent text-[#466c64] transition-colors hover:text-[#203e35] sm:bottom-6"
+          className="group absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 border-0 bg-transparent text-[#466c64] transition-colors hover:text-[#203e35] sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))]"
         >
           <span className="font-mono text-base font-bold tracking-widest sm:text-lg">continue</span>
           <div className="relative h-[40px] w-[48px] sm:h-[60px] sm:w-[68px] animate-bounce transition-transform duration-200 group-hover:scale-110">
@@ -686,11 +691,11 @@ export default function Home() {
 
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pt-24 pb-24 text-center slide-up-anim">
           <div className="relative inline-block">
-            <div className="pointer-events-none absolute -top-20 -left-28 sm:-top-24 sm:-left-36 md:-top-28 md:-left-44 z-0">
+            <div className="pointer-events-none absolute -top-14 -left-16 sm:-top-24 sm:-left-36 md:-top-28 md:-left-44 z-0 scale-[0.6] sm:scale-[0.8] md:scale-100 origin-bottom-right">
               <ShapeCluster shapes={S2_TOP_LEFT} size={130} />
             </div>
 
-            <div className="pointer-events-none absolute -top-20 -right-28 sm:-top-24 sm:-right-36 md:-top-28 md:-right-44 z-0">
+            <div className="pointer-events-none absolute -top-14 -right-16 sm:-top-24 sm:-right-36 md:-top-28 md:-right-44 z-0 scale-[0.6] sm:scale-[0.8] md:scale-100 origin-bottom-left">
               <ShapeCluster shapes={S2_TOP_RIGHT} size={130} />
             </div>
 
@@ -704,7 +709,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => document.getElementById("section-3")?.scrollIntoView({ behavior: "smooth" })}
-          className="group absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 border-0 bg-transparent text-[#466c64] transition-colors hover:text-[#203e35] sm:bottom-6"
+          className="group absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 border-0 bg-transparent text-[#466c64] transition-colors hover:text-[#203e35] sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))]"
         >
           <span className="font-mono text-base font-bold tracking-widest sm:text-lg">continue</span>
           <div className="relative h-[40px] w-[48px] sm:h-[60px] sm:w-[68px] animate-bounce transition-transform duration-200 group-hover:scale-110">
@@ -714,55 +719,48 @@ export default function Home() {
       </section>
 
       {/* ============ SECTION 3 — ADVENTURE AWAITS ============ */}
-      <section id="section-3" className="relative flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden bg-gradient-to-b from-[#7ab478] to-[#d4eab3]">
+      <section id="section-3" className="relative flex min-h-[100svh] w-full shrink-0 snap-start flex-col justify-center overflow-hidden bg-gradient-to-b from-[#7ab478] to-[#d4eab3]">
         <BottomLines />
 
-        <div className="relative flex flex-1 flex-col md:left-[5%] md:w-[95%]">
-          <div className="relative z-10 flex flex-1 items-center px-6 pb-10 pt-24 sm:px-10">
-            <div className="mx-auto grid w-full max-w-7xl items-center gap-8 md:grid-cols-[1fr_1.5fr] md:gap-12">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-12 py-24">
+          
+          <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
 
-              {/* Left Column: Retro TV shell + VideoFrame-style controls */}
-              <div className="relative flex w-full items-center justify-center md:justify-start md:-translate-x-[100px]">
-                <RetroTVPlayer />
-              </div>
+            {/* Left Column: Retro TV shell */}
+            <div className="relative flex w-full items-center justify-center">
+              <RetroTVPlayer />
+            </div>
 
-              {/* Right Column: Text + top cluster anchored to text + bottom cluster below paragraph */}
-              <div className="relative min-w-0 slide-up-anim w-full mt-16 md:mt-0 md:translate-x-[10%]" style={{ containerType: "inline-size" }}>
+            {/* Right Column: Text */}
+            <div className="relative min-w-0 slide-up-anim w-full lg:-translate-x-[4%]">
 
-                {/* Top cluster — anchored at top-left of "Adventure Awaits" (text-relative) */}
-                <div className="pointer-events-none absolute -top-14 -left-6 sm:-top-16 sm:-left-10 md:-top-20 md:-left-14 z-0">
-                  <ShapeCluster shapes={S3_TOP} size={110} />
+              <div className="relative z-10">
+                {/* Removed the scale-[1.2] and slightly reduced max font size to fit better */}
+                <div className="origin-center lg:origin-left mb-6 md:mb-8 text-center lg:text-left flex justify-center lg:justify-start">
+                  <AdventureHeading fontClass={sifonn.className} />
                 </div>
 
-                <div className="relative z-10">
-                  <div className="origin-center md:origin-left scale-[1.2] mb-6 md:mb-10 text-center md:text-left flex justify-center md:justify-start">
-                    <AdventureHeading fontClass={sifonn.className} />
-                  </div>
+                {/* Reduced text size to clamp(0.9rem, 2vw, 1.3rem) */}
+                <div className={`${plexMonoRegular.className} mt-5 w-full space-y-4 text-[clamp(0.9rem,2vw,1.3rem)] font-normal leading-relaxed text-[#111] md:mt-6 md:space-y-5 text-center lg:text-left`}>
+                  <p>
+                    Explore the website in full and answer the form found at the navigation tab (<InlineHamburger />) to earn your incentive.
+                  </p>
+                  <p>Screenshot your certificate and upload it in the assignments tab under your HMRM1 course.</p>
+                </div>
 
-                  <div className={`${plexMonoRegular.className} mt-5 w-full space-y-5 text-[clamp(1rem,2.6vw,1.62rem)] font-normal leading-relaxed text-[#111] md:mt-7 md:space-y-6 text-center md:text-left`}>
-                    <p>
-                      Explore the website in full and answer the form found at the navigation tab (<InlineHamburger />) to earn your incentive.
-                    </p>
-                    <p>Screenshot your certificate and upload it in the assignments tab under your HMRM1 course.</p>
-                  </div>
-
-                  {/* Bottom cluster — below the paragraph */}
-                  <div className="pointer-events-none mt-4 flex justify-center md:justify-start">
-                    <ShapeCluster shapes={S3_BOTTOM} size={110} />
-                  </div>
-
-                  <div className="mt-4 flex justify-center md:mt-6">
-                    <Link
-                      href="/map"
-                      className={`${plexMonoRegular.className} inline-block border-[3px] border-black bg-[#c9c9c9] px-12 py-3 text-[clamp(1rem,1.8vw,1.25rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
-                    >
-                      Begin Tour
-                    </Link>
-                  </div>
+                <div className="mt-8 flex justify-center lg:justify-start md:mt-10">
+                  {/* Reduced button padding and font size slightly */}
+                  <Link
+                    href="/map"
+                    className={`${plexMonoRegular.className} inline-block border-[3px] border-black bg-[#c9c9c9] px-8 py-2 text-[clamp(0.9rem,1.5vw,1.1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+                  >
+                    Begin Tour
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
       </section>
     </main>

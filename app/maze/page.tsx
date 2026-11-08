@@ -77,7 +77,7 @@ const EXIT_RADIUS = 38;
 
 // Jumpscare Timings
 const FLASH_DURATION_MS = 4000; 
-const SCARE_1_3_DURATION = 200; // 0.2 seconds
+const SCARE_1_3_DURATION = 300; // 0.3 seconds
 
 const IMG_DIR = "/images/maze";
 
@@ -402,6 +402,9 @@ export default function MazePage() {
   const collisionLockRef = useRef(false);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
   const startOffsetRef = useRef<Point>({ x: 0, y: 0 });
+  
+  // Track jumpscares
+  const jumpscareCountRef = useRef(0);
 
   const [started, setStarted] = useState(false);
   const [cursor, setCursor] = useState<Point>(START);
@@ -411,6 +414,9 @@ export default function MazePage() {
   const [hasRetried, setHasRetried] = useState(false);
   const [imagesTick, setImagesTick] = useState(0);
   const [scale, setScale] = useState(2);
+  
+  // Black flash state for when jumpscares are disabled
+  const [blackFlash, setBlackFlash] = useState(false);
 
   const reset = useCallback(() => {
     setStarted(false);
@@ -450,15 +456,29 @@ export default function MazePage() {
   const triggerWallHit = useCallback(() => {
     if (collisionLockRef.current) return;
     collisionLockRef.current = true;
+    
+    // Increment jumpscare count
+    jumpscareCountRef.current += 1;
 
-    // Play Audio
-    const audio = new Audio("/audio/mazeJumpscare.mp3");
-    audio.volume = 1.0;
-    audio.play().catch((e) => console.error("Audio failed to play:", e));
+    if (jumpscareCountRef.current <= 3) {
+      // Play Audio and visual scare
+      const audio = new Audio("/audio/mazeJumpscare.mp3");
+      audio.volume = 1.0;
+      audio.play().catch((e) => console.error("Audio failed to play:", e));
 
-    // Start image sequence
-    setScareFrame(0);
-    setAaliyahFlash(true);
+      setScareFrame(0);
+      setAaliyahFlash(true);
+    } else {
+      // Jumpscare disabled: Flash black with "Try again" instead
+      setBlackFlash(true);
+      setTimeout(() => {
+        setBlackFlash(false);
+        setCursor(START);
+        setStarted(false);
+        setHasRetried(true);
+        collisionLockRef.current = false;
+      }, 1500); 
+    }
   }, []);
 
   // Jumpscare Image Sequence Timing
@@ -601,7 +621,7 @@ export default function MazePage() {
   };
 
   const onCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (ending || aaliyahFlash) return;
+    if (ending || aaliyahFlash || blackFlash) return;
 
     const p = getCanvasPoint(e);
 
@@ -613,7 +633,7 @@ export default function MazePage() {
   const onCanvasPointerMove = (
     e: React.PointerEvent<HTMLCanvasElement>
   ) => {
-    if (!started || ending || aaliyahFlash) return;
+    if (!started || ending || aaliyahFlash || blackFlash) return;
 
     const raw = getCanvasPoint(e);
     const p = {
@@ -667,14 +687,8 @@ export default function MazePage() {
         className={`${pressStart.className} flex shrink-0 items-center justify-center gap-2 px-4 text-center text-xs tracking-[0.1em] text-white sm:gap-3 sm:text-sm sm:tracking-[0.15em] lg:text-lg`}
         style={{ height: TOP_BAR_HEIGHT }}
       >
-        {started ? (
-          <span>{TOP_TEXT_PLAYING}</span>
-        ) : (
-          <>
-            <div className="block h-[2em] w-[2em] rounded-full border-[3px] border-[#ff0033] bg-black select-none" />
-            <span>{hasRetried ? TOP_TEXT_RETRY : TOP_TEXT_START}</span>
-          </>
-        )}
+        <div className="block h-[2em] w-[2em] rounded-full border-[3px] border-[#ff0033] bg-black select-none" />
+        <span>{started ? TOP_TEXT_PLAYING : (hasRetried ? TOP_TEXT_RETRY : TOP_TEXT_START)}</span>
       </div>
 
       <div
@@ -695,7 +709,7 @@ export default function MazePage() {
           style={{ aspectRatio: "16 / 9" }}
         />
 
-        {!started && !ending && !aaliyahFlash && (
+        {!started && !ending && !aaliyahFlash && !blackFlash && (
           <button
             ref={startButtonRef}
             type="button"
@@ -719,26 +733,32 @@ export default function MazePage() {
         )}
 
         {aaliyahFlash && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden pointer-events-none">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none bg-black">
             {scareFrame < 3 ? (
-              /* Scares 1-3: Coming out of the maze, with flicker */
+              /* Scares 1-3: Blacked out background with flicker effect */
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={SCARE_IMAGES[scareFrame]}
                 alt="Jumpscare"
-                className="w-[150%] h-[150%] object-contain animate-[scareFlicker_0.2s_ease-in-out_infinite] drop-shadow-[0_0_20px_rgba(255,0,0,0.8)]"
+                className="w-full h-full object-cover animate-[scareFlicker_0.15s_ease-in-out_infinite]"
               />
             ) : (
-              /* Scare 4: Full screen */
-              <div className="fixed inset-0 z-[100] flex bg-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={SCARE_IMAGES[3]}
-                  alt="Jumpscare"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              /* Scare 4: Full screen solid image, zoomed in extra 20% (from 1.4 to 1.6) */
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={SCARE_IMAGES[3]}
+                alt="Jumpscare"
+                className="fixed inset-0 h-full w-full object-cover scale-[1.6]"
+              />
             )}
+          </div>
+        )}
+
+        {blackFlash && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black">
+            <span className={`${pressStart.className} text-4xl text-white tracking-widest`}>
+              Try again
+            </span>
           </div>
         )}
       </div>

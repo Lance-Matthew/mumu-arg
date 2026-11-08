@@ -1,7 +1,7 @@
 "use client";
 
 import localFont from "next/font/local";
-import { IBM_Plex_Mono, Nosifer } from "next/font/google";
+import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -19,15 +19,8 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const nosifer = Nosifer({
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
 const YELLOW = "#ffe793";
 
-// Cloudflare Stream HLS manifest for the "Tour with Ali" video
 const TOUR_VIDEO_SRC =
   "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/7e9f60c3852ab7f7022ab5ea46730182/manifest/video.m3u8";
 
@@ -64,8 +57,6 @@ const ShapeAnimations = () => (
     @keyframes path-triangle { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(-15px, -15px); } 66% { transform: translate(15px, -15px); } }
     @keyframes path-diamond { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(10px, -12px); } 50% { transform: translate(20px, 0); } 75% { transform: translate(10px, 12px); } }
 
-    /* Two upward hops per 5s cycle, then a pause.
-       Uses translateY only (no scale) so the button stays pixel-crisp. */
     @keyframes bounce2beat {
       0%   { transform: translateY(0); }
       3%   { transform: translateY(-8px); }
@@ -73,31 +64,6 @@ const ShapeAnimations = () => (
       11%  { transform: translateY(-8px); }
       14%  { transform: translateY(0); }
       100% { transform: translateY(0); }
-    }
-
-    /* Ominous White Lady flicker: mostly visible, brief drops + subtle scale */
-    @keyframes white-lady-flicker {
-      0%   { opacity: 1;    transform: scale(1); }
-      6%   { opacity: 0.35; transform: scale(1.015); }
-      9%   { opacity: 1;    transform: scale(1); }
-      42%  { opacity: 1;    transform: scale(1); }
-      44%  { opacity: 0.15; transform: scale(0.99); }
-      46%  { opacity: 1;    transform: scale(1); }
-      47%  { opacity: 0.4;  transform: scale(1.01); }
-      49%  { opacity: 1;    transform: scale(1); }
-      78%  { opacity: 1;    transform: scale(1); }
-      80%  { opacity: 0.2;  transform: scale(0.985); }
-      82%  { opacity: 1;    transform: scale(1); }
-      100% { opacity: 1;    transform: scale(1); }
-    }
-
-    .white-lady-title {
-      color: #8b0000;
-      text-shadow:
-        0 0 6px rgba(139, 0, 0, 0.55),
-        0 0 14px rgba(139, 0, 0, 0.35),
-        2px 2px 0 rgba(0, 0, 0, 0.9);
-      animation: white-lady-flicker 4s ease-in-out infinite;
     }
 
     .anim-wiggle-1 { animation: wiggle1 2s ease-in-out infinite; }
@@ -159,9 +125,6 @@ export default function TheaterPage() {
 
   const active = productions[currentProduction];
 
-  // Disable the slide animation whenever the White Lady (4th) image is
-  // involved — either as the target or the slide we're coming from — so
-  // moving to/from it snaps instantly with no transition.
   const skipSlideTransition =
     currentProduction === WHITE_LADY_INDEX;
 
@@ -227,7 +190,6 @@ export default function TheaterPage() {
                 className="object-contain"
               />
 
-              {/* CLUSTER A - Moved down 5% and left 5% */}
               <div className="absolute top-[5%] right-[5%] w-32 h-32 pointer-events-none z-20">
                 <div className="absolute top-0 left-0 anim-path-2">
                   <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
@@ -246,7 +208,6 @@ export default function TheaterPage() {
                 </div>
               </div>
 
-              {/* CLUSTER B - Moved up 3% and right 3% */}
               <div className="absolute bottom-[3%] left-[3%] w-32 h-32 pointer-events-none z-20">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 anim-path-3">
                   <div className="relative h-10 w-10 md:h-14 md:w-14 anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#ff7f7f)_drop-shadow(-1.5px_0_0_#ff7f7f)_drop-shadow(0_1.5px_0_#ff7f7f)_drop-shadow(0_-1.5px_0_#ff7f7f)]">
@@ -329,7 +290,6 @@ export default function TheaterPage() {
             className="relative overflow-hidden rounded-[2rem] border-[5px] border-black px-6 py-10 shadow-[10px_12px_0_rgba(0,0,0,0.25)] sm:px-10 sm:py-12 md:px-12 md:py-14"
             style={{ background: YELLOW }}
           >
-            {/* Decorative corner dots */}
             <div className="absolute top-4 left-4 flex gap-1.5">
               <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#ff7f7f" }} />
               <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#ffeaa6" }} />
@@ -345,10 +305,8 @@ export default function TheaterPage() {
               Past Productions
             </h3>
 
-            {/* Two-column body: image on left, text on right (stacks on mobile) */}
             <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-[minmax(0,320px)_1fr] md:gap-10">
 
-              {/* Left column — carousel image + arrows + dots */}
               <div className="flex flex-col items-center">
                 <div className="relative w-full max-w-[320px]">
                   {currentProduction > 0 && (
@@ -396,7 +354,6 @@ export default function TheaterPage() {
                   )}
                 </div>
 
-                {/* Dot indicators */}
                 <div className="mt-5 flex items-center justify-center gap-2">
                   {productions.map((_, index) => (
                     <button
@@ -411,17 +368,29 @@ export default function TheaterPage() {
                 </div>
               </div>
 
-              {/* Right column — title + blurb */}
-              <div className="flex flex-col justify-center text-center md:text-left">
-                <p
-                  className={
-                    active.cursed
-                      ? `${nosifer.className} white-lady-title font-bold text-2xl md:text-3xl`
-                      : `${plexMono.className} font-bold text-black text-xl md:text-2xl`
-                  }
-                >
-                  {active.title}
-                </p>
+              <div className="flex flex-col justify-center text-center md:text-left relative">
+                <div className="relative inline-block mx-auto md:mx-0">
+                  <p
+                    className={`${plexMono.className} text-black text-xl md:text-2xl relative z-10`}
+                  >
+                    {active.title}
+                  </p>
+
+                  {/* Overlapping scrambled letters for the cursed title */}
+                  {active.cursed && (
+                    <span
+                      className="absolute inset-0 z-0 font-mono text-black opacity-30 mix-blend-multiply select-none pointer-events-none break-all"
+                      style={{
+                        transform: "translate(3px, -4px) scale(1.05)",
+                        filter: "blur(0.5px)",
+                      }}
+                      aria-hidden="true"
+                    >
+                      z x i t e  L a d d a t
+                    </span>
+                  )}
+                </div>
+
                 {active.blurb && (
                   <p className={`${plexMono.className} mt-4 text-sm leading-relaxed text-black md:text-base`}>
                     {active.blurb}
@@ -435,14 +404,13 @@ export default function TheaterPage() {
         </div>
       </section>
 
-      {/* ============ SECTION 4 — TOUR WITH ALI (BOTTOM) ============ */}
+      {/* ============ SECTION 4 — TOUR WITH ALI ============ */}
       <section
         className="relative w-full pt-24 pb-12"
         style={{ background: "linear-gradient(to bottom, #ff8f8f 0%, #ff8f8f 100%)" }}
       >
         <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
 
-          {/* Heading row — aligned to frame edges, sits right above the frame */}
           <div className="mx-auto w-full max-w-5xl">
             <div className="mb-2 flex items-end justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -464,7 +432,6 @@ export default function TheaterPage() {
 
           <VideoFrame src={TOUR_VIDEO_SRC} />
 
-          {/* Back to Campus Map button — centered below the video frame, 2-beat bounce every 5s */}
           <div className="mt-8 flex w-full justify-center">
             <Link
               href="/map"

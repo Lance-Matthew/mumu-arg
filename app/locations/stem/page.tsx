@@ -197,8 +197,9 @@ export default function StemPage() {
     e.preventDefault();
     const normalized = answer.trim().toLowerCase();
     
+    // Only "multo" is accepted
     if (normalized !== "multo") {
-      setError("Incorrect answer. Try again.");
+      setError("Invalid input. Try again.");
       return;
     }
     
@@ -454,24 +455,24 @@ export default function StemPage() {
                 className={`${plexMono.className} px-7 py-10 md:px-10 md:py-12`}
               >
                 <h3 className="mb-4 text-center text-3xl font-bold text-black md:text-4xl">
-                  Enter the Answer
+                  Sign Up
                 </h3>
                 <p className="mb-5 text-center text-sm leading-relaxed text-black md:text-base">
-                  
+                  Enter the password to get a tour of our laboratories.
                 </p>
 
-                <label htmlFor="stem-answer" className="block text-sm font-bold text-black md:text-base">
-                  Answer
+                <label htmlFor="stem-email" className="block text-sm font-bold text-black md:text-base">
+                  Password
                 </label>
                 <input
-                  id="stem-answer"
+                  id="stem-email"
                   type="text"
                   value={answer}
                   onChange={(e) => {
                     setAnswer(e.target.value);
                     if (error) setError("");
                   }}
-                  placeholder="Type here..."
+                  placeholder="m****"
                   className="mt-2 w-full rounded-md border-[3px] border-black bg-white px-3 py-2 text-sm text-black outline-none placeholder:text-black/40 md:text-base"
                 />
                 {error && (
@@ -481,7 +482,7 @@ export default function StemPage() {
                   type="submit"
                   className="mt-5 w-full border-[3px] border-black bg-[#c9c9c9] px-4 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]"
                 >
-                  Submit
+                  Create Account
                 </button>
               </form>
 
