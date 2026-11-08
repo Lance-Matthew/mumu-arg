@@ -57,91 +57,28 @@ const ShapeAnimations = () => (
     @keyframes path-triangle { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(-15px, -15px); } 66% { transform: translate(15px, -15px); } }
     @keyframes path-diamond { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(10px, -12px); } 50% { transform: translate(20px, 0); } 75% { transform: translate(10px, 12px); } }
 
+    /* Two upward hops per 5s cycle, then a pause.
+       Uses translateY only (no scale) so the button stays pixel-crisp. */
+    @keyframes bounce2beat {
+      0%   { transform: translateY(0); }
+      3%   { transform: translateY(-8px); }
+      6%   { transform: translateY(0); }
+      11%  { transform: translateY(-8px); }
+      14%  { transform: translateY(0); }
+      100% { transform: translateY(0); }
+    }
+
     .anim-wiggle-1 { animation: wiggle1 2s ease-in-out infinite; }
     .anim-wiggle-2 { animation: wiggle2 2.3s ease-in-out infinite; }
     .anim-wiggle-3 { animation: wiggle3 2.6s ease-in-out infinite; }
     .anim-path-1 { animation: path-square 4s linear infinite; }
     .anim-path-2 { animation: path-triangle 5s linear infinite; }
     .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
+    .anim-pulse-5 { animation: bounce2beat 5s ease-in-out infinite; will-change: transform; }
   `}</style>
 );
 
 export default function LibraryPage() {
-  // Dummy QR code as an inline SVG data URI
-  const dummyQr =
-    "data:image/svg+xml;utf8," +
-    encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" shape-rendering="crispEdges">
-        <rect width="100" height="100" fill="#ffffff"/>
-        <rect x="5" y="5" width="25" height="25" fill="#1f2329"/>
-        <rect x="10" y="10" width="15" height="15" fill="#ffffff"/>
-        <rect x="13" y="13" width="9" height="9" fill="#1f2329"/>
-        <rect x="70" y="5" width="25" height="25" fill="#1f2329"/>
-        <rect x="75" y="10" width="15" height="15" fill="#ffffff"/>
-        <rect x="78" y="13" width="9" height="9" fill="#1f2329"/>
-        <rect x="5" y="70" width="25" height="25" fill="#1f2329"/>
-        <rect x="10" y="75" width="15" height="15" fill="#ffffff"/>
-        <rect x="13" y="78" width="9" height="9" fill="#1f2329"/>
-        <rect x="38" y="8" width="6" height="6" fill="#1f2329"/>
-        <rect x="50" y="8" width="6" height="6" fill="#1f2329"/>
-        <rect x="44" y="16" width="6" height="6" fill="#1f2329"/>
-        <rect x="56" y="16" width="6" height="6" fill="#1f2329"/>
-        <rect x="38" y="24" width="6" height="6" fill="#1f2329"/>
-        <rect x="50" y="24" width="6" height="6" fill="#1f2329"/>
-        <rect x="8" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="20" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="8" y="50" width="6" height="6" fill="#1f2329"/>
-        <rect x="20" y="50" width="6" height="6" fill="#1f2329"/>
-        <rect x="8" y="56" width="6" height="6" fill="#1f2329"/>
-        <rect x="38" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="50" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="62" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="44" y="44" width="6" height="6" fill="#1f2329"/>
-        <rect x="56" y="44" width="6" height="6" fill="#1f2329"/>
-        <rect x="38" y="50" width="6" height="6" fill="#1f2329"/>
-        <rect x="62" y="50" width="6" height="6" fill="#1f2329"/>
-        <rect x="44" y="56" width="6" height="6" fill="#1f2329"/>
-        <rect x="56" y="56" width="6" height="6" fill="#1f2329"/>
-        <rect x="38" y="62" width="6" height="6" fill="#1f2329"/>
-        <rect x="50" y="62" width="6" height="6" fill="#1f2329"/>
-        <rect x="62" y="62" width="6" height="6" fill="#1f2329"/>
-        <rect x="70" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="82" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="94" y="38" width="6" height="6" fill="#1f2329"/>
-        <rect x="76" y="44" width="6" height="6" fill="#1f2329"/>
-        <rect x="88" y="44" width="6" height="6" fill="#1f2329"/>
-        <rect x="70" y="50" width="6" height="6" fill="#1f2329"/>
-        <rect x="82" y="50" width="6" height="6" fill="#1f2329"/>
-        <rect x="94" y="50" width="6" height="6" fill="#1f2329"/>
-        <rect x="76" y="56" width="6" height="6" fill="#1f2329"/>
-        <rect x="88" y="56" width="6" height="6" fill="#1f2329"/>
-        <rect x="70" y="62" width="6" height="6" fill="#1f2329"/>
-        <rect x="82" y="62" width="6" height="6" fill="#1f2329"/>
-        <rect x="94" y="62" width="6" height="6" fill="#1f2329"/>
-        <rect x="38" y="70" width="6" height="6" fill="#1f2329"/>
-        <rect x="50" y="70" width="6" height="6" fill="#1f2329"/>
-        <rect x="62" y="70" width="6" height="6" fill="#1f2329"/>
-        <rect x="44" y="82" width="6" height="6" fill="#1f2329"/>
-        <rect x="56" y="82" width="6" height="6" fill="#1f2329"/>
-        <rect x="38" y="88" width="6" height="6" fill="#1f2329"/>
-        <rect x="50" y="88" width="6" height="6" fill="#1f2329"/>
-        <rect x="62" y="88" width="6" height="6" fill="#1f2329"/>
-        <rect x="70" y="70" width="6" height="6" fill="#1f2329"/>
-        <rect x="82" y="70" width="6" height="6" fill="#1f2329"/>
-        <rect x="94" y="70" width="6" height="6" fill="#1f2329"/>
-        <rect x="76" y="76" width="6" height="6" fill="#1f2329"/>
-        <rect x="88" y="76" width="6" height="6" fill="#1f2329"/>
-        <rect x="70" y="82" width="6" height="6" fill="#1f2329"/>
-        <rect x="82" y="82" width="6" height="6" fill="#1f2329"/>
-        <rect x="94" y="82" width="6" height="6" fill="#1f2329"/>
-        <rect x="76" y="88" width="6" height="6" fill="#1f2329"/>
-        <rect x="88" y="88" width="6" height="6" fill="#1f2329"/>
-        <rect x="94" y="94" width="6" height="6" fill="#1f2329"/>
-        <rect x="70" y="94" width="6" height="6" fill="#1f2329"/>
-        <rect x="82" y="94" width="6" height="6" fill="#1f2329"/>
-      </svg>
-    `);
-
   return (
     <main className="min-h-screen w-full bg-white">
       <ShapeAnimations />
@@ -184,9 +121,15 @@ export default function LibraryPage() {
                 Fiarce Library
               </BlueHeading>
 
-              <p className={`${plexMono.className} mt-5 w-0 min-w-full text-sm leading-snug text-black sm:text-[15px]`}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce euismod et neque a interdum.
-              </p>
+              <div className={`${plexMono.className} mt-5 w-0 min-w-full text-sm leading-relaxed text-black md:text-base`}>
+                <p>
+                  Welcome to the Fiarce Library. This library has been operational since the 1970s, amassing a
+                  variety of books, ranging from topics about thermodynamics to the human psyche. Decades of
+                  literature have been poured into the library having over 2 million books available to be
+                  borrowed by students at any time. The library boasts of having over 1,500 square meters, with
+                  different sections containing various topics one might need.
+                </p>
+              </div>
             </div>
 
             <div className="relative mx-auto aspect-[4/3] w-full max-w-lg drop-shadow-2xl">
@@ -270,15 +213,18 @@ export default function LibraryPage() {
               </p>
             </div>
 
-            <div className={`${plexMono.className} space-y-5 text-[15px] leading-relaxed text-black md:text-[1.05rem]`}>
+            <div className={`${plexMono.className} space-y-5 text-sm leading-relaxed text-black md:text-base`}>
               <p>
-                Cras ac massa vulputate, pellentesque erat id, mollis velit. Sed aliquet porta rutrum. Nunc
-                pretium, enim quis sodales lacinia, nisi quam placerat ligula, euismod egestas justo massa in
-                neque.
+                Standing tall for more than half a century, the Fiarce Library has survived numerous trials by
+                fire, enduring through both natural disasters and historic man-made conflicts. Established in
+                the 1970s, the library overcame catastrophic early events, including a mass burning of books
+                during its founding decade.
               </p>
               <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce euismod et neque a interdum.
-                Aliquam et feugiat nunc. Vestibulum eu turpis felis. In hac habitasse platea dictumst.
+                Despite numerous setbacks, the library was rebuilt and modernized with resilience, preserving
+                its core mission to serve USF's future bright stars with academic knowledge. Over the succeeding
+                decades, dedicated acquisitions transformed the library into a bustling space where communities
+                of people can gather.
               </p>
             </div>
 
@@ -295,29 +241,70 @@ export default function LibraryPage() {
         <div className="mx-auto w-full max-w-5xl px-6 sm:px-10 md:px-12">
           <div className="grid w-full items-stretch gap-8 md:grid-cols-2 md:gap-10">
 
-            {/* Borrowing Card */}
-            <div className="flex flex-col rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-10 md:py-12" style={{ background: YELLOW }}>
-              <h3 className={`${plexMono.className} mb-8 text-center text-3xl font-bold text-black md:text-4xl`}>Borrowing</h3>
-              <div className="flex flex-1 flex-row items-center justify-center gap-6 md:gap-8">
-                <div className="relative w-24 h-24 md:w-32 md:h-32 shrink-0 drop-shadow-md">
-                  <Image src="/images/library/book.png" alt="Book" fill sizes="(max-width: 768px) 96px, 128px" className="object-contain" />
+            {/* Borrowing Card — sticky note */}
+            <div
+              className="relative flex flex-col rounded-[4px] px-8 pb-10 pt-12 shadow-[6px_8px_14px_rgba(0,0,0,0.3),inset_0_2px_0_rgba(255,255,255,0.6)] md:px-10 md:pb-12"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 18%), " + YELLOW,
+                transform: "rotate(-1.2deg)",
+              }}
+            >
+              {/* Push pin */}
+              <div className="absolute -top-3 left-5 z-10">
+                <div className="relative h-6 w-6 rounded-full bg-gradient-to-br from-[#ff5b5b] to-[#b22222] shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                  <div className="absolute left-1 top-1 h-2 w-2 rounded-full bg-white/70" />
                 </div>
-                <p className={`${plexMono.className} text-sm leading-relaxed text-black md:text-base`}>
-                  Fusce euismod et neque a interdum. Aliquam et feugiat nunc. Vestibulum eu turpis felis.
-                </p>
               </div>
+
+              <div className="mb-6 flex items-center justify-center gap-4">
+                <h3 className={`${plexMono.className} text-3xl font-bold tracking-tight text-black md:text-4xl`}>
+                  Borrowing
+                </h3>
+                <div className="relative h-12 w-12 shrink-0 drop-shadow-md md:h-16 md:w-16">
+                  <Image src="/images/library/book.png" alt="Book" fill sizes="(max-width: 768px) 48px, 64px" className="object-contain" />
+                </div>
+              </div>
+
+              <p className={`${plexMono.className} flex-1 text-sm leading-relaxed text-black md:text-base`}>
+                How to borrow books in the Fiarce Library: Borrow onsite only. Follow a simple process by first
+                picking out a book, then scanning the book's barcode into our self-check-out machines to
+                register it to your name or ID number.
+              </p>
             </div>
 
-            {/* Booking Card */}
-            <div className="flex flex-col rounded-3xl px-8 py-10 shadow-[6px_8px_14px_rgba(0,0,0,0.3)] md:px-10 md:py-12" style={{ background: YELLOW }}>
-              <h3 className={`${plexMono.className} mb-8 text-center text-3xl font-bold text-black md:text-4xl`}>Booking</h3>
-              <div className="flex flex-1 flex-row items-center justify-center gap-6 md:gap-8">
-                <p className={`${plexMono.className} text-sm leading-relaxed text-black md:text-base`}>
-                  Sed aliquet porta rutrum. Nunc pretium, enim quis sodales lacinia, nisi quam placerat ligula.
-                </p>
-                <div className="relative w-24 h-24 md:w-32 md:h-32 shrink-0 drop-shadow-md">
-                  <Image src={dummyQr} alt="QR Code" fill sizes="(max-width: 768px) 96px, 128px" className="object-contain" unoptimized />
+            {/* Booking Card — sticky note */}
+            <div
+              className="relative flex flex-col rounded-[4px] px-8 pb-10 pt-12 shadow-[6px_8px_14px_rgba(0,0,0,0.3),inset_0_2px_0_rgba(255,255,255,0.6)] md:px-10 md:pb-12"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 18%), " + YELLOW,
+                transform: "rotate(1.2deg)",
+              }}
+            >
+              {/* Push pin */}
+              <div className="absolute -top-3 left-5 z-10">
+                <div className="relative h-6 w-6 rounded-full bg-gradient-to-br from-[#5b8cff] to-[#2233b2] shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                  <div className="absolute left-1 top-1 h-2 w-2 rounded-full bg-white/70" />
                 </div>
+              </div>
+
+              <div className="mb-6 flex items-center justify-center">
+                <h3 className={`${plexMono.className} text-3xl font-bold tracking-tight text-black md:text-4xl`}>
+                  Booking
+                </h3>
+              </div>
+
+              <div className={`${plexMono.className} flex-1 text-sm leading-relaxed text-black md:text-base`}>
+                <p>
+                  To book a study room in the Fiarce Library, one must log in to the library's website to see
+                  all the study rooms available. Fill out all information fields and await your email
+                  confirmation. Present this to the front desk on the first floor to acquire the keys to your
+                  study room.
+                </p>
+                <p className="mt-4 font-bold">
+                  For Other Inquiries: libr<span className="font-bold text-[#ffe793] selection:text-black">aswang</span>ry@usf.edu.ph
+                </p>
               </div>
             </div>
 
@@ -327,7 +314,7 @@ export default function LibraryPage() {
 
       {/* ============ SECTION 4 — TOUR WITH ALI (BOTTOM, LARGE) ============ */}
       <section
-        className="relative w-full py-24"
+        className="relative w-full pt-24 pb-12"
         style={{ background: "linear-gradient(to bottom, #8cc152 0%, #8cc152 100%)" }}
       >
         <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
@@ -349,18 +336,20 @@ export default function LibraryPage() {
                   />
                 </div>
               </div>
-
-              {/* Back to Campus Map button — top right, aligned with heading bottom edge */}
-              <Link
-                href="/map"
-                className={`${plexMono.className} mb-2 shrink-0 border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
-              >
-                Back to Campus Map
-              </Link>
             </div>
           </div>
 
           <VideoFrame src={TOUR_VIDEO_SRC} />
+
+          {/* Back to Campus Map button — centered below the video frame, 2-beat bounce every 5s */}
+          <div className="mt-8 flex w-full justify-center">
+            <Link
+              href="/map"
+              className={`${plexMono.className} anim-pulse-5 inline-flex items-center justify-center border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+            >
+              Back to Campus Map
+            </Link>
+          </div>
 
         </div>
       </section>

@@ -23,6 +23,12 @@ const RED_ANSWERS: Record<string, string> = {
 
 type FieldState = "idle" | "correct" | "wrong";
 
+// Normalize: lowercase, strip everything that isn't a letter.
+// Case-insensitive and space/punctuation-insensitive, but letter ORDER matters.
+function normalize(value: string): string {
+  return value.toLowerCase().replace(/[^a-z]/g, "");
+}
+
 export default function IncentiveModal({
   open,
   onClose,
@@ -45,44 +51,21 @@ export default function IncentiveModal({
     setFieldStates((prev) => ({ ...prev, [loc]: "idle" }));
   };
 
-  // Returns the number of locations where the user's answer matches
-  // either the green or red set (case-insensitive, trimmed).
-  const countCorrect = () => {
-    let count = 0;
-    LOCATIONS.forEach((loc) => {
-      const v = values[loc].trim().toLowerCase();
-      const g = GREEN_ANSWERS[loc].trim().toLowerCase();
-      const r = RED_ANSWERS[loc].trim().toLowerCase();
-      if (v === g || v === r) count++;
-    });
-    return count;
-  };
-
   const isFieldCorrect = (loc: string) => {
-    const v = values[loc].trim().toLowerCase();
-    return (
-      v === GREEN_ANSWERS[loc].trim().toLowerCase() ||
-      v === RED_ANSWERS[loc].trim().toLowerCase()
-    );
+    const v = normalize(values[loc]);
+    return v === normalize(GREEN_ANSWERS[loc]) || v === normalize(RED_ANSWERS[loc]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check endings FIRST before we clear the values
     const allGreen = LOCATIONS.every(
-      (loc) =>
-        values[loc].trim().toLowerCase() ===
-        GREEN_ANSWERS[loc].trim().toLowerCase()
+      (loc) => normalize(values[loc]) === normalize(GREEN_ANSWERS[loc])
     );
 
     const allRed = LOCATIONS.every(
-      (loc) =>
-        values[loc].trim().toLowerCase() ===
-        RED_ANSWERS[loc].trim().toLowerCase()
+      (loc) => normalize(values[loc]) === normalize(RED_ANSWERS[loc])
     );
-
-    const correct = countCorrect();
 
     if (allGreen) {
       onClose();
@@ -96,13 +79,7 @@ export default function IncentiveModal({
       return;
     }
 
-    if (correct === 2) {
-      onClose();
-      router.push("/ending/gray");
-      return;
-    }
-
-    // If we didn't route away, now update the visual feedback
+    // No ending matched — show per-field feedback
     const newStates: Record<string, FieldState> = {};
     const cleared: Record<string, string> = { ...values };
 
@@ -111,7 +88,7 @@ export default function IncentiveModal({
         newStates[loc] = "correct";
       } else {
         newStates[loc] = "wrong";
-        cleared[loc] = ""; // clear wrong inputs
+        cleared[loc] = "";
       }
     });
 

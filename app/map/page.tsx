@@ -8,8 +8,7 @@ import { IBM_Plex_Mono, Press_Start_2P } from "next/font/google";
 import SchoolHeader from "@/components/SchoolHeader";
 
 import { useProgress } from "@/lib/useProgress";
-import { readProgress, writeProgress } from "@/lib/progress";
-import DebugResetButton from "@/components/DebugResetButton";
+import { readProgress, writeProgress, resetProgress } from "@/lib/progress";
 
 import MapComponent, {
   MAP_LOCATIONS,
@@ -100,6 +99,19 @@ const FRAMES = [
 
 type Phase = "intro" | "scary" | "postScary" | "happy" | "empty" | "video";
 
+/* ── responsive hook ─────────────────────────────────────────── */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const onChange = () => setIsDesktop(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return isDesktop;
+}
+
 function HandOverlay() {
   const lib = MAP_LOCATIONS.find((l) => l.name === "Library");
   if (!lib) return null;
@@ -137,6 +149,7 @@ function FiarceOverlay() {
 
 export default function MapPage() {
   const router = useRouter();
+  const isDesktop = useIsDesktop();
 
   const progress = useProgress();
   const visited = progress.libraryVisited;
@@ -318,6 +331,11 @@ export default function MapPage() {
     setStep(0);
   };
 
+  const handleDebugReset = () => {
+    resetProgress();
+    window.location.reload();
+  };
+
   const restart = () => {
     setPhase("postScary");
     setStep(0);
@@ -353,13 +371,12 @@ export default function MapPage() {
   const needsTap = !visited && !hasStartedGame;
   const hideAaliyah = needsTap || phase === "postScary";
 
-  // ONLY the scary sequence disables audio control. After the jumpscare, it's
-  // fully interactive again (but the BGM stays silent until the user toggles it
-  // or navigates away and back, because we don't auto-resume after jumpscare).
   const muteForced =
     phase === "scary" ||
     phase === "empty" ||
     phase === "video";
+
+  const autoStartVolume = needsTap ? 3 : undefined;
 
   const mapOverlay = needsTap ? (
     <button
@@ -383,8 +400,6 @@ export default function MapPage() {
       className="relative h-[100svh] w-full overflow-hidden"
       style={{ background: "linear-gradient(to bottom, #eaf5b5 0%, #c7f0a2 50%, #8cc152 100%)" }}
     >
-      <DebugResetButton />
-
       <style>{`
         @keyframes bubble-float-a {
           0%, 100% { transform: translateY(0) rotate(-1.5deg); }
@@ -450,206 +465,214 @@ export default function MapPage() {
         <SchoolHeader />
       </div>
 
-      <div className="hidden md:block w-full h-full">
-        <div
-          className={`${sifonn.className} pointer-events-none absolute z-30 grid grid-cols-1 leading-[0.9]`}
-          style={{
-            left: "5.4vw", top: "6.2vw", fontSize: "4.4vw",
-            opacity: needsTap ? 0 : 1,
-            transition: "opacity 0.5s ease-in-out"
-          }}
-        >
+      {isDesktop && (
+        <div className="w-full h-full">
           <div
-            className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+            className={`${sifonn.className} pointer-events-none absolute z-30 grid grid-cols-1 leading-[0.9]`}
             style={{
-              opacity: showCampusMapText ? 0 : 1,
-              transform: showCampusMapText ? "translateY(-20px)" : "translateY(0)",
-              pointerEvents: showCampusMapText ? "none" : "auto",
-              gridColumn: 1,
-              gridRow: 1,
+              left: "5.4vw", top: "6.2vw", fontSize: "4.4vw",
+              opacity: needsTap ? 0 : 1,
+              transition: "opacity 0.5s ease-in-out"
             }}
           >
-            <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>
-              Tutorial<br />Mode
-            </span>
-            <span style={{ paintOrder: "stroke fill", color: "#ffeb99", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>
-              Tutorial<br />Mode
-            </span>
+            <div
+              className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+              style={{
+                opacity: showCampusMapText ? 0 : 1,
+                transform: showCampusMapText ? "translateY(-20px)" : "translateY(0)",
+                pointerEvents: showCampusMapText ? "none" : "auto",
+                gridColumn: 1,
+                gridRow: 1,
+              }}
+            >
+              <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>
+                Tutorial<br />Mode
+              </span>
+              <span style={{ paintOrder: "stroke fill", color: "#ffeb99", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>
+                Tutorial<br />Mode
+              </span>
+            </div>
+
+            <div
+              className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+              style={{
+                opacity: showCampusMapText ? 1 : 0,
+                transform: showCampusMapText ? "translateY(0)" : "translateY(20px)",
+                pointerEvents: showCampusMapText ? "auto" : "none",
+                gridColumn: 1,
+                gridRow: 1,
+              }}
+            >
+              <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>
+                Campus<br />Map
+              </span>
+              <span style={{ paintOrder: "stroke fill", color: "#8cc152", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>
+                Campus<br />Map
+              </span>
+            </div>
           </div>
 
           <div
-            className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+            className="absolute z-20 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             style={{
-              opacity: showCampusMapText ? 1 : 0,
-              transform: showCampusMapText ? "translateY(0)" : "translateY(20px)",
-              pointerEvents: showCampusMapText ? "auto" : "none",
-              gridColumn: 1,
-              gridRow: 1,
+              width: "55.7vw",
+              top: "55%",
+              right: needsTap ? "50%" : "5vw",
+              transform: needsTap ? "translate(50%, -50%) scale(1.05)" : "translate(0%, -50%) scale(1)",
             }}
           >
-            <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>
-              Campus<br />Map
-            </span>
-            <span style={{ paintOrder: "stroke fill", color: "#8cc152", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>
-              Campus<br />Map
-            </span>
+            <MapComponent
+              onLocationClick={handleLocation}
+              disabled={!canClick}
+              pressedLocation={showHand ? "Library" : undefined}
+              hoverOnly={phase === "postScary" ? "Library" : undefined}
+              forceHoverAll={showHoverPulse}
+              muteForced={muteForced}
+              autoStartVolume={autoStartVolume}
+              onResetSequence={handleDebugReset}
+              fontClassName={pressStart.className}
+              overlay={mapOverlay}
+            />
           </div>
-        </div>
 
-        <div
-          className="absolute z-20 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-          style={{
-            width: "55.7vw",
-            top: "55%",
-            right: needsTap ? "50%" : "5vw",
-            transform: needsTap ? "translate(50%, -50%) scale(1.05)" : "translate(0%, -50%) scale(1)",
-          }}
-        >
-          <MapComponent
-            onLocationClick={handleLocation}
-            disabled={!canClick}
-            pressedLocation={showHand ? "Library" : undefined}
-            hoverOnly={phase === "postScary" ? "Library" : undefined}
-            forceHoverAll={showHoverPulse}
-            muteForced={muteForced}
-            fontClassName={pressStart.className}
-            overlay={mapOverlay}
-          />
-        </div>
-
-        <div
-          className={`pointer-events-none absolute z-[100] ${current?.glitch ? "glitch" : ""}`}
-          style={{
-            left: "-17.5vw", top: "9.7vw", width: "88.2vw",
-            opacity: hideAaliyah ? 0 : 1,
-            transition: "opacity 0.7s ease-in-out"
-          }}
-        >
-          {FRAMES.map((src, i) => {
-            const isHappy1 = src === ASSETS.happy1;
-            const isHappy2Or3 = src === ASSETS.happy2 || src === ASSETS.happy3;
-
-            let transform = "scale(1)";
-            if (isHappy1) transform = "scale(0.9) translateY(-20%)";
-            else if (isHappy2Or3) transform = "scale(0.9) translateY(-11%)";
-
-            return (
-              <Image
-                key={src}
-                src={src}
-                alt={i === 0 ? "Aaliyah" : ""}
-                width={0}
-                height={0}
-                sizes="90vw"
-                priority
-                className={`h-auto w-full ${i === 0 ? "relative block" : "absolute left-0 top-0"}`}
-                style={{
-                  opacity: current?.img === src ? 1 : 0,
-                  transform,
-                  transformOrigin: "bottom center",
-                }}
-              />
-            );
-          })}
-        </div>
-
-        <div className={`${bubbleClassA} pointer-events-none absolute z-30`} style={{ left: "1.6vw", top: "30.9vw", width: "10.9vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}>
-          <Image src="/images/map/message.png" alt="Speech bubble" width={0} height={0} sizes="7vw" className="block h-auto w-full" />
-        </div>
-        <div className={`${bubbleClassB} pointer-events-none absolute z-30`} style={{ left: "2.8vw", top: "15.7vw", width: "15.63vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}>
-          <Image src="/images/map/message.png" alt="Speech bubble" width={0} height={0} sizes="7vw" className="block h-auto w-full scale-x-[-1]" />
-        </div>
-      </div>
-
-      <div className="flex md:hidden flex-col items-center justify-center w-full h-full px-4 pt-24 pb-8 gap-4">
-        <div
-          className={`${sifonn.className} relative z-40 grid grid-cols-1 leading-[0.9] text-center mb-2 w-full flex justify-center`}
-          style={{
-            fontSize: "clamp(2.5rem, 12vw, 3.5rem)",
-            opacity: needsTap ? 0 : 1,
-            transition: "opacity 0.5s ease-in-out"
-          }}
-        >
           <div
-            className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+            className={`pointer-events-none absolute z-40 ${current?.glitch ? "glitch" : ""}`}
             style={{
-              opacity: showCampusMapText ? 0 : 1,
-              transform: showCampusMapText ? "translateY(-20px)" : "translateY(0)",
-              gridColumn: 1,
-              gridRow: 1,
+              left: "-17.5vw", top: "9.7vw", width: "88.2vw",
+              opacity: hideAaliyah ? 0 : 1,
+              transition: "opacity 0.7s ease-in-out"
             }}
           >
-            <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>Tutorial<br />Mode</span>
-            <span style={{ paintOrder: "stroke fill", color: "#ffeb99", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>Tutorial<br />Mode</span>
+            {FRAMES.map((src, i) => {
+              const isHappy1 = src === ASSETS.happy1;
+              const isHappy2Or3 = src === ASSETS.happy2 || src === ASSETS.happy3;
+
+              let transform = "scale(1)";
+              if (isHappy1) transform = "scale(0.9) translateY(-20%)";
+              else if (isHappy2Or3) transform = "scale(0.9) translateY(-11%)";
+
+              return (
+                <Image
+                  key={src}
+                  src={src}
+                  alt={i === 0 ? "Aaliyah" : ""}
+                  width={0}
+                  height={0}
+                  sizes="90vw"
+                  priority
+                  className={`h-auto w-full ${i === 0 ? "relative block" : "absolute left-0 top-0"}`}
+                  style={{
+                    opacity: current?.img === src ? 1 : 0,
+                    transform,
+                    transformOrigin: "bottom center",
+                  }}
+                />
+              );
+            })}
           </div>
+
+          <div className={`${bubbleClassA} pointer-events-none absolute z-30`} style={{ left: "1.6vw", top: "30.9vw", width: "10.9vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}>
+            <Image src="/images/map/message.png" alt="Speech bubble" width={0} height={0} sizes="7vw" className="block h-auto w-full" />
+          </div>
+          <div className={`${bubbleClassB} pointer-events-none absolute z-30`} style={{ left: "2.8vw", top: "15.7vw", width: "15.63vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}>
+            <Image src="/images/map/message.png" alt="Speech bubble" width={0} height={0} sizes="7vw" className="block h-auto w-full scale-x-[-1]" />
+          </div>
+        </div>
+      )}
+
+      {!isDesktop && (
+        <div className="flex flex-col items-center justify-center w-full h-full px-4 pt-24 pb-8 gap-4">
           <div
-            className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+            className={`${sifonn.className} relative z-40 grid grid-cols-1 leading-[0.9] text-center mb-2 w-full flex justify-center`}
             style={{
-              opacity: showCampusMapText ? 1 : 0,
-              transform: showCampusMapText ? "translateY(0)" : "translateY(20px)",
-              gridColumn: 1,
-              gridRow: 1,
+              fontSize: "clamp(2.5rem, 12vw, 3.5rem)",
+              opacity: needsTap ? 0 : 1,
+              transition: "opacity 0.5s ease-in-out"
             }}
           >
-            <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>Campus<br />Map</span>
-            <span style={{ paintOrder: "stroke fill", color: "#8cc152", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>Campus<br />Map</span>
+            <div
+              className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+              style={{
+                opacity: showCampusMapText ? 0 : 1,
+                transform: showCampusMapText ? "translateY(-20px)" : "translateY(0)",
+                gridColumn: 1,
+                gridRow: 1,
+              }}
+            >
+              <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>Tutorial<br />Mode</span>
+              <span style={{ paintOrder: "stroke fill", color: "#ffeb99", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>Tutorial<br />Mode</span>
+            </div>
+            <div
+              className="grid grid-cols-1 transition-all duration-1000 ease-in-out"
+              style={{
+                opacity: showCampusMapText ? 1 : 0,
+                transform: showCampusMapText ? "translateY(0)" : "translateY(20px)",
+                gridColumn: 1,
+                gridRow: 1,
+              }}
+            >
+              <span aria-hidden="true" style={{ paintOrder: "stroke fill", color: "#000", WebkitTextStroke: "0.2em #000", textShadow: extrude, gridColumn: 1, gridRow: 1 }}>Campus<br />Map</span>
+              <span style={{ paintOrder: "stroke fill", color: "#8cc152", WebkitTextStroke: "0.08em #000", gridColumn: 1, gridRow: 1 }}>Campus<br />Map</span>
+            </div>
+          </div>
+
+          <div
+            className={`relative w-full max-w-[18rem] pointer-events-none mt-4 z-40 ${current?.glitch ? "glitch" : ""}`}
+            style={{ opacity: hideAaliyah ? 0 : 1, transition: "opacity 0.7s ease-in-out" }}
+          >
+            {FRAMES.map((src, i) => {
+              const isHappy1 = src === ASSETS.happy1;
+              const isHappy2Or3 = src === ASSETS.happy2 || src === ASSETS.happy3;
+
+              let transform = "scale(1)";
+              if (isHappy1) transform = "scale(0.9) translateY(-20%)";
+              else if (isHappy2Or3) transform = "scale(0.9) translateY(-11%)";
+
+              return (
+                <Image
+                  key={src}
+                  src={src}
+                  alt=""
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  priority
+                  className={`h-auto w-full ${i === 0 ? "relative block" : "absolute left-0 top-0"}`}
+                  style={{
+                    opacity: current?.img === src ? 1 : 0,
+                    transform,
+                    transformOrigin: "bottom center",
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          <div
+            className="relative z-20 w-full max-w-[20rem] mt-auto transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            style={{
+              position: needsTap ? "fixed" : "relative",
+              top: needsTap ? "50%" : "auto",
+              left: needsTap ? "50%" : "auto",
+              transform: needsTap ? "translate(-50%, -50%) scale(1.05)" : "translate(0, 0) scale(1)",
+              width: needsTap ? "85vw" : "100%"
+            }}
+          >
+            <MapComponent
+              onLocationClick={handleLocation}
+              disabled={!canClick}
+              pressedLocation={showHand ? "Library" : undefined}
+              hoverOnly={phase === "postScary" ? "Library" : undefined}
+              forceHoverAll={showHoverPulse}
+              muteForced={muteForced}
+              autoStartVolume={autoStartVolume}
+              onResetSequence={handleDebugReset}
+              fontClassName={pressStart.className}
+              overlay={mapOverlay}
+            />
           </div>
         </div>
-
-        <div
-          className={`relative w-full max-w-[18rem] pointer-events-none mt-4 z-[100] ${current?.glitch ? "glitch" : ""}`}
-          style={{ opacity: hideAaliyah ? 0 : 1, transition: "opacity 0.7s ease-in-out" }}
-        >
-          {FRAMES.map((src, i) => {
-            const isHappy1 = src === ASSETS.happy1;
-            const isHappy2Or3 = src === ASSETS.happy2 || src === ASSETS.happy3;
-
-            let transform = "scale(1)";
-            if (isHappy1) transform = "scale(0.9) translateY(-20%)";
-            else if (isHappy2Or3) transform = "scale(0.9) translateY(-6%)";
-
-            return (
-              <Image
-                key={src}
-                src={src}
-                alt=""
-                width={0}
-                height={0}
-                sizes="100vw"
-                priority
-                className={`h-auto w-full ${i === 0 ? "relative block" : "absolute left-0 top-0"}`}
-                style={{
-                  opacity: current?.img === src ? 1 : 0,
-                  transform,
-                  transformOrigin: "bottom center",
-                }}
-              />
-            );
-          })}
-        </div>
-
-        <div
-          className="relative z-20 w-full max-w-[20rem] mt-auto transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-          style={{
-            position: needsTap ? "fixed" : "relative",
-            top: needsTap ? "50%" : "auto",
-            left: needsTap ? "50%" : "auto",
-            transform: needsTap ? "translate(-50%, -50%) scale(1.05)" : "translate(0, 0) scale(1)",
-            width: needsTap ? "85vw" : "100%"
-          }}
-        >
-          <MapComponent
-            onLocationClick={handleLocation}
-            disabled={!canClick}
-            pressedLocation={showHand ? "Library" : undefined}
-            hoverOnly={phase === "postScary" ? "Library" : undefined}
-            forceHoverAll={showHoverPulse}
-            muteForced={muteForced}
-            fontClassName={pressStart.className}
-            overlay={mapOverlay}
-          />
-        </div>
-      </div>
+      )}
 
       {phase === "empty" && (
         <div
@@ -660,15 +683,16 @@ export default function MapPage() {
       )}
 
       {phase === "video" && (
-  <video
-    src={ASSETS.jumpscare}
-    autoPlay
-    playsInline
-    onEnded={restart}
-    onError={restart}
-    className="fixed inset-0 z-[200] h-full w-full bg-black object-cover"
-  />
-)}
+        <video
+          src={ASSETS.jumpscare}
+          autoPlay
+          playsInline
+          onEnded={restart}
+          onError={restart}
+          //volume used to be here
+          className="fixed inset-0 z-[200] h-full w-full bg-black object-cover"
+        />
+      )}
     </main>
   );
 }

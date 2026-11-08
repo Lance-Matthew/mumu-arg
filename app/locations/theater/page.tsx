@@ -1,7 +1,7 @@
 "use client";
 
 import localFont from "next/font/local";
-import { IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Nosifer } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -16,6 +16,12 @@ const sifonn = localFont({
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
+  display: "swap",
+});
+
+const nosifer = Nosifer({
+  subsets: ["latin"],
+  weight: "400",
   display: "swap",
 });
 
@@ -58,40 +64,86 @@ const ShapeAnimations = () => (
     @keyframes path-triangle { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(-15px, -15px); } 66% { transform: translate(15px, -15px); } }
     @keyframes path-diamond { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(10px, -12px); } 50% { transform: translate(20px, 0); } 75% { transform: translate(10px, 12px); } }
 
+    /* Two upward hops per 5s cycle, then a pause.
+       Uses translateY only (no scale) so the button stays pixel-crisp. */
+    @keyframes bounce2beat {
+      0%   { transform: translateY(0); }
+      3%   { transform: translateY(-8px); }
+      6%   { transform: translateY(0); }
+      11%  { transform: translateY(-8px); }
+      14%  { transform: translateY(0); }
+      100% { transform: translateY(0); }
+    }
+
+    /* Ominous White Lady flicker: mostly visible, brief drops + subtle scale */
+    @keyframes white-lady-flicker {
+      0%   { opacity: 1;    transform: scale(1); }
+      6%   { opacity: 0.35; transform: scale(1.015); }
+      9%   { opacity: 1;    transform: scale(1); }
+      42%  { opacity: 1;    transform: scale(1); }
+      44%  { opacity: 0.15; transform: scale(0.99); }
+      46%  { opacity: 1;    transform: scale(1); }
+      47%  { opacity: 0.4;  transform: scale(1.01); }
+      49%  { opacity: 1;    transform: scale(1); }
+      78%  { opacity: 1;    transform: scale(1); }
+      80%  { opacity: 0.2;  transform: scale(0.985); }
+      82%  { opacity: 1;    transform: scale(1); }
+      100% { opacity: 1;    transform: scale(1); }
+    }
+
+    .white-lady-title {
+      color: #8b0000;
+      text-shadow:
+        0 0 6px rgba(139, 0, 0, 0.55),
+        0 0 14px rgba(139, 0, 0, 0.35),
+        2px 2px 0 rgba(0, 0, 0, 0.9);
+      animation: white-lady-flicker 4s ease-in-out infinite;
+    }
+
     .anim-wiggle-1 { animation: wiggle1 2s ease-in-out infinite; }
     .anim-wiggle-2 { animation: wiggle2 2.3s ease-in-out infinite; }
     .anim-wiggle-3 { animation: wiggle3 2.6s ease-in-out infinite; }
     .anim-path-1 { animation: path-square 4s linear infinite; }
     .anim-path-2 { animation: path-triangle 5s linear infinite; }
     .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
+    .anim-pulse-5 { animation: bounce2beat 5s ease-in-out infinite; will-change: transform; }
   `}</style>
 );
 
 export default function TheaterPage() {
   const [currentProduction, setCurrentProduction] = useState(0);
 
-  const productions = [
+  const productions: {
+    src: string;
+    title: string;
+    blurb?: string;
+    cursed?: boolean;
+  }[] = [
     {
       src: "/images/theater/production1.png",
-      title: "Production 1",
-      description: "Placeholder 1 text goes here. Fusce euismod et neque a interdum. Aliquam et feugiat nunc."
+      title: "There's That Smile (2011)",
+      blurb: "A heartwarming musical story about a teenager's self-discovery and the joy of making music.",
     },
     {
       src: "/images/theater/production2.png",
-      title: "Production 2",
-      description: "Placeholder 2 text goes here. Vestibulum eu turpis felis. In hac habitasse platea dictumst."
+      title: "Tapatan (2016)",
+      blurb:
+        "A dramatic and action-packed stage play that has themes of rivalry, camaraderie, and deep-seated trust between two friends who were enemies at first.",
     },
     {
       src: "/images/theater/production3.png",
-      title: "Production 3",
-      description: "Placeholder 3 text goes here. Cras ac massa vulputate, pellentesque erat id."
+      title: "Digital Star (2020)",
+      blurb:
+        "A musical over Zoom examining the highs and lows of internet fame that takes place within the era of social media.",
     },
     {
       src: "/images/theater/whiteLady.png",
       title: "White Lady",
-      description: "Placeholder 4 text goes here. Sed aliquet porta rutrum. Nunc pretium, enim quis sodales."
+      cursed: true,
     },
   ];
+
+  const WHITE_LADY_INDEX = productions.findIndex((p) => p.cursed);
 
   const handleNext = () => {
     if (currentProduction < productions.length - 1) {
@@ -104,6 +156,14 @@ export default function TheaterPage() {
       setCurrentProduction((prev) => prev - 1);
     }
   };
+
+  const active = productions[currentProduction];
+
+  // Disable the slide animation whenever the White Lady (4th) image is
+  // involved — either as the target or the slide we're coming from — so
+  // moving to/from it snaps instantly with no transition.
+  const skipSlideTransition =
+    currentProduction === WHITE_LADY_INDEX;
 
   return (
     <main className="min-h-screen w-full bg-white overflow-x-hidden">
@@ -147,9 +207,14 @@ export default function TheaterPage() {
                 Marie Theater Hall
               </CreamHeading>
 
-              <p className={`${plexMono.className} mt-5 w-0 min-w-full text-[15px] leading-relaxed text-black sm:text-[1.05rem]`}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce euismod et neque a interdum.
-              </p>
+              <div className={`${plexMono.className} mt-5 w-0 min-w-full text-sm leading-relaxed text-black md:text-base`}>
+                <p>
+                  Welcome to the Marie Theater Hall, named after the 1970s icon, Miss Marie, who is an alumna
+                  of USF. The theater hall was named after her to pay tribute to all her success in the
+                  industry. Marie Theater Hall is well equipped with multiple mini theaters and rehearsal
+                  rooms.
+                </p>
+              </div>
             </div>
 
             <div className="relative mx-auto aspect-[4/3] w-full max-w-lg drop-shadow-2xl md:translate-x-[25%]">
@@ -234,15 +299,16 @@ export default function TheaterPage() {
               </p>
             </div>
 
-            <div className={`${plexMono.className} space-y-5 text-[15px] leading-relaxed text-black md:text-[1.05rem]`}>
+            <div className={`${plexMono.className} space-y-5 text-sm leading-relaxed text-black md:text-base`}>
               <p>
-                Cras ac massa vulputate, pellentesque erat id, mollis velit. Sed aliquet porta rutrum. Nunc
-                pretium, enim quis sodales lacinia, nisi quam placerat ligula, euismod egestas justo massa in
-                neque.
+                The Marie Theater Hall was recently renovated from only being a modest single-stage auditorium,
+                built to house early campus assemblies and student productions, to become one of the best
+                performing arts facilities in the country.
               </p>
               <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce euismod et neque a interdum.
-                Aliquam et feugiat nunc. Vestibulum eu turpis felis. In hac habitasse platea dictumst.
+                Recognizing the expanding needs and interest of students for the arts and theater, the
+                university collaborated with the Engineering Department to renovate the building's surround
+                sound.
               </p>
             </div>
 
@@ -257,10 +323,10 @@ export default function TheaterPage() {
         className="relative w-full py-24"
         style={{ background: "linear-gradient(to bottom, #ffffff 0%, #fff3f2 45%, #ffd0cd 78%, #ff8f8f 100%)" }}
       >
-        <div className="relative z-10 mx-auto w-full max-w-3xl px-6 sm:px-10 md:px-12">
+        <div className="relative z-10 mx-auto w-full max-w-4xl px-6 sm:px-10 md:px-12">
 
           <div
-            className="relative overflow-hidden rounded-[2rem] border-[5px] border-black px-8 py-12 shadow-[10px_12px_0_rgba(0,0,0,0.25)] md:px-14 md:py-14"
+            className="relative overflow-hidden rounded-[2rem] border-[5px] border-black px-6 py-10 shadow-[10px_12px_0_rgba(0,0,0,0.25)] sm:px-10 sm:py-12 md:px-12 md:py-14"
             style={{ background: YELLOW }}
           >
             {/* Decorative corner dots */}
@@ -275,73 +341,95 @@ export default function TheaterPage() {
               <span className="block h-2.5 w-2.5 rounded-full border-2 border-black" style={{ background: "#ff7f7f" }} />
             </div>
 
-            <h3 className={`${plexMono.className} mb-10 text-center text-3xl font-bold text-black md:text-4xl`}>
+            <h3 className={`${plexMono.className} mb-8 text-center text-3xl font-bold text-black md:mb-10 md:text-4xl`}>
               Past Productions
             </h3>
 
-            <div className="relative flex items-center justify-center gap-4 max-w-lg mx-auto">
+            {/* Two-column body: image on left, text on right (stacks on mobile) */}
+            <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-[minmax(0,320px)_1fr] md:gap-10">
 
-              {currentProduction > 0 && (
-                <button
-                  onClick={handlePrev}
-                  className="absolute -left-4 md:-left-10 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:h-14 md:w-14"
-                >
-                  <div className="relative w-2/3 h-2/3 rotate-90">
-                    <Image src="/images/main/downArrow.png" alt="Left" fill sizes="56px" className="object-contain" />
-                  </div>
-                </button>
-              )}
+              {/* Left column — carousel image + arrows + dots */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-full max-w-[320px]">
+                  {currentProduction > 0 && (
+                    <button
+                      onClick={handlePrev}
+                      className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:-left-6 md:h-12 md:w-12"
+                    >
+                      <div className="relative w-2/3 h-2/3 rotate-90">
+                        <Image src="/images/main/downArrow.png" alt="Left" fill sizes="48px" className="object-contain" />
+                      </div>
+                    </button>
+                  )}
 
-              {/* Slide track — pure horizontal sliding, no fade */}
-              <div className="relative w-full max-w-[360px] aspect-[2/3] rounded-xl overflow-hidden border-4 border-black bg-white shadow-[6px_8px_0_rgba(0,0,0,0.35)]">
-                <div
-                  className="flex h-full w-full transition-transform duration-500 ease-in-out"
-                  style={{ transform: `translateX(-${currentProduction * 100}%)` }}
-                >
-                  {productions.map((production, index) => (
-                    <div key={index} className="relative h-full w-full shrink-0">
-                      <Image
-                        src={production.src}
-                        alt={production.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 500px"
-                        className="object-cover"
-                        quality={100}
-                      />
+                  <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden border-4 border-black bg-white shadow-[6px_8px_0_rgba(0,0,0,0.35)]">
+                    <div
+                      className={`flex h-full w-full ${
+                        skipSlideTransition ? "" : "transition-transform duration-500 ease-in-out"
+                      }`}
+                      style={{ transform: `translateX(-${currentProduction * 100}%)` }}
+                    >
+                      {productions.map((production, index) => (
+                        <div key={index} className="relative h-full w-full shrink-0">
+                          <Image
+                            src={production.src}
+                            alt={production.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 320px"
+                            className="object-cover"
+                            quality={100}
+                          />
+                        </div>
+                      ))}
                     </div>
+                  </div>
+
+                  {currentProduction < productions.length - 1 && (
+                    <button
+                      onClick={handleNext}
+                      className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:-right-6 md:h-12 md:w-12"
+                    >
+                      <div className="relative w-2/3 h-2/3 -rotate-90">
+                        <Image src="/images/downArrow.png" alt="Right" fill sizes="48px" className="object-contain" />
+                      </div>
+                    </button>
+                  )}
+                </div>
+
+                {/* Dot indicators */}
+                <div className="mt-5 flex items-center justify-center gap-2">
+                  {productions.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentProduction(index)}
+                      aria-label={`Go to production ${index + 1}`}
+                      className={`h-3 w-3 rounded-full border-2 border-black transition-all duration-200 ${
+                        index === currentProduction ? "scale-125 bg-black" : "bg-white/70 hover:bg-white"
+                      }`}
+                    />
                   ))}
                 </div>
               </div>
 
-              {currentProduction < productions.length - 1 && (
-                <button
-                  onClick={handleNext}
-                  className="absolute -right-4 md:-right-10 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:h-14 md:w-14"
+              {/* Right column — title + blurb */}
+              <div className="flex flex-col justify-center text-center md:text-left">
+                <p
+                  className={
+                    active.cursed
+                      ? `${nosifer.className} white-lady-title font-bold text-2xl md:text-3xl`
+                      : `${plexMono.className} font-bold text-black text-xl md:text-2xl`
+                  }
                 >
-                  <div className="relative w-2/3 h-2/3 -rotate-90">
-                    <Image src="/images/downArrow.png" alt="Right" fill sizes="56px" className="object-contain" />
-                  </div>
-                </button>
-              )}
-            </div>
+                  {active.title}
+                </p>
+                {active.blurb && (
+                  <p className={`${plexMono.className} mt-4 text-sm leading-relaxed text-black md:text-base`}>
+                    {active.blurb}
+                  </p>
+                )}
+              </div>
 
-            {/* Dot indicators */}
-            <div className="mt-6 flex items-center justify-center gap-2">
-              {productions.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentProduction(index)}
-                  aria-label={`Go to production ${index + 1}`}
-                  className={`h-3 w-3 rounded-full border-2 border-black transition-all duration-200 ${
-                    index === currentProduction ? "scale-125 bg-black" : "bg-white/70 hover:bg-white"
-                  }`}
-                />
-              ))}
             </div>
-
-            <p className={`${plexMono.className} mt-6 text-center text-sm leading-relaxed text-black max-w-md mx-auto transition-opacity duration-300`}>
-              {productions[currentProduction].description}
-            </p>
           </div>
 
         </div>
@@ -349,7 +437,7 @@ export default function TheaterPage() {
 
       {/* ============ SECTION 4 — TOUR WITH ALI (BOTTOM) ============ */}
       <section
-        className="relative w-full py-24"
+        className="relative w-full pt-24 pb-12"
         style={{ background: "linear-gradient(to bottom, #ff8f8f 0%, #ff8f8f 100%)" }}
       >
         <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-12">
@@ -371,18 +459,20 @@ export default function TheaterPage() {
                   />
                 </div>
               </div>
-
-              {/* Back to Campus Map button — top right, aligned with heading bottom edge */}
-              <Link
-                href="/map"
-                className={`${plexMono.className} mb-2 shrink-0 border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
-              >
-                Back to Campus Map
-              </Link>
             </div>
           </div>
 
           <VideoFrame src={TOUR_VIDEO_SRC} />
+
+          {/* Back to Campus Map button — centered below the video frame, 2-beat bounce every 5s */}
+          <div className="mt-8 flex w-full justify-center">
+            <Link
+              href="/map"
+              className={`${plexMono.className} anim-pulse-5 inline-flex items-center justify-center border-[3px] border-black bg-[#c9c9c9] px-6 py-1.5 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]`}
+            >
+              Back to Campus Map
+            </Link>
+          </div>
 
         </div>
       </section>

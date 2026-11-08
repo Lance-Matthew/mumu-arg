@@ -63,34 +63,36 @@ const YELLOW_POLYGON: Point[] = [
   { x: 826, y: 98 },
 ];
 
-// Starting position. The corridor here spans x = 572..592, so x must stay near its middle (582)
-// or the player starts partly inside the wall and trips the 5% rule.
 const START: Point = { x: 584, y: 375 };
-const EXIT_1 = { x: 849, y: 90 };   // Top-right → /ending/gray
-const EXIT_2 = { x: 333, y: 603 };  // Bottom-left edge → /ending/red
+const EXIT_1 = { x: 849, y: 90 };
+const EXIT_2 = { x: 333, y: 603 };
 
-// Size of the pulsing start button (before it's clicked)
 const PLAYER_RADIUS = 7.2;
-// Smaller size once the player has clicked it and is playing (drawn + used for collision)
 const PLAYING_RADIUS = 5;
 const PATH_COLLISION_PADDING = 0;
-// Jumpscare triggers only when MORE than 5% of the player is touching the wall
 const WALL_HIT_OUTSIDE_RATIO = 0.10;
 const COLLISION_SAMPLES = 40;
-const FLASH_DURATION_MS = 500;
 
 const EXIT_RADIUS = 38;
 
-const AALIYAH_IMAGE_SRC = "/aaliyah.png";
+// Jumpscare Timings
+const FLASH_DURATION_MS = 4000; 
+const SCARE_1_3_DURATION = 200; // 0.2 seconds
 
 const IMG_DIR = "/images/maze";
+
+const SCARE_IMAGES = [
+  `${IMG_DIR}/scare1.png`, 
+  `${IMG_DIR}/scare2.png`, 
+  `${IMG_DIR}/scare3.png`, 
+  `${IMG_DIR}/scare4.png`
+];
+
 const GATE_SRC = `${IMG_DIR}/mazeGate.png`;
 const GATE_HEIGHT = 70;
 const GATE_ROTATION = Math.PI / 2;
-// Gates sit just past the end of the path, like the top-right one (path ends at x = 826, gate at 849 => 23px gap)
 const GATE_GAP = 23;
 const GATE_1 = { x: EXIT_1.x, y: EXIT_1.y };
-// Bottom-left: path strip runs y 566..603 and ends at x = 333, so center the gate on the strip and push it 23px past the end
 const GATE_2 = { x: 333 - GATE_GAP, y: 585 };
 
 const TOP_TEXT_START = "Click this icon to start";
@@ -372,7 +374,6 @@ function getWallOutsideRatio(x: number, y: number) {
 }
 
 function isWallCollision(x: number, y: number) {
-  // Strictly more than 5% of the player touching the wall
   return getWallOutsideRatio(x, y) > WALL_HIT_OUTSIDE_RATIO;
 }
 
@@ -400,14 +401,13 @@ export default function MazePage() {
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const collisionLockRef = useRef(false);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
-  // Offset between where the player starts (START) and where the real mouse was when clicked,
-  // so the player begins exactly on the blinking spot and then moves relative to the mouse.
   const startOffsetRef = useRef<Point>({ x: 0, y: 0 });
 
   const [started, setStarted] = useState(false);
   const [cursor, setCursor] = useState<Point>(START);
   const [ending, setEnding] = useState<Ending>(null);
   const [aaliyahFlash, setAaliyahFlash] = useState(false);
+  const [scareFrame, setScareFrame] = useState(0);
   const [hasRetried, setHasRetried] = useState(false);
   const [imagesTick, setImagesTick] = useState(0);
   const [scale, setScale] = useState(2);
@@ -416,6 +416,7 @@ export default function MazePage() {
     setStarted(false);
     setEnding(null);
     setAaliyahFlash(false);
+    setScareFrame(0);
     setCursor(START);
     setHasRetried(false);
     startOffsetRef.current = { x: 0, y: 0 };
@@ -434,7 +435,6 @@ export default function MazePage() {
     });
     const mouse = toCanvas(e.clientX, e.clientY);
 
-    // Start exactly where the pulsing icon is on screen (its real rendered center)
     let startPos: Point = START;
     const btn = startButtonRef.current;
     if (btn) {
@@ -450,21 +450,40 @@ export default function MazePage() {
   const triggerWallHit = useCallback(() => {
     if (collisionLockRef.current) return;
     collisionLockRef.current = true;
+
+    // Play Audio
+    const audio = new Audio("/audio/mazeJumpscare.mp3");
+    audio.volume = 1.0;
+    audio.play().catch((e) => console.error("Audio failed to play:", e));
+
+    // Start image sequence
+    setScareFrame(0);
     setAaliyahFlash(true);
   }, []);
 
+  // Jumpscare Image Sequence Timing
   useEffect(() => {
     if (!aaliyahFlash) return;
 
-    const id = window.setTimeout(() => {
+    const t1 = setTimeout(() => setScareFrame(1), SCARE_1_3_DURATION);
+    const t2 = setTimeout(() => setScareFrame(2), SCARE_1_3_DURATION * 2);
+    const t3 = setTimeout(() => setScareFrame(3), SCARE_1_3_DURATION * 3);
+
+    const tEnd = setTimeout(() => {
       setCursor(START);
       setAaliyahFlash(false);
+      setScareFrame(0);
       setStarted(false);
       setHasRetried(true);
       collisionLockRef.current = false;
     }, FLASH_DURATION_MS);
 
-    return () => window.clearTimeout(id);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(tEnd);
+    };
   }, [aaliyahFlash]);
 
   const checkEnding = useCallback((p: Point): Ending => {
@@ -475,11 +494,6 @@ export default function MazePage() {
     if (nearExit2) return "Ending 2";
 
     return null;
-  }, []);
-
-  useEffect(() => {
-    const image = new Image();
-    image.src = AALIYAH_IMAGE_SRC;
   }, []);
 
   useEffect(() => {
@@ -562,13 +576,12 @@ export default function MazePage() {
     }
 
     if (started) {
-      // Draw the player as a circle with hot red border and black inside
       ctx.save();
       ctx.beginPath();
       ctx.arc(cursor.x, cursor.y, PLAYING_RADIUS, 0, Math.PI * 2);
-      ctx.fillStyle = COLORS.bg; // Inside is black
+      ctx.fillStyle = COLORS.bg;
       ctx.fill();
-      ctx.strokeStyle = COLORS.hotRed; // Border is hot red
+      ctx.strokeStyle = COLORS.hotRed;
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.restore();
@@ -639,6 +652,15 @@ export default function MazePage() {
             filter: drop-shadow(0 0 8px rgba(255, 0, 51, 0.9));
           }
         }
+
+        @keyframes scareFlicker {
+          0% { opacity: 1; transform: scale(1); }
+          20% { opacity: 0.2; transform: scale(1.05); }
+          40% { opacity: 1; transform: scale(0.95); }
+          60% { opacity: 0.4; transform: scale(1.02); }
+          80% { opacity: 1; transform: scale(1); }
+          100% { opacity: 1; transform: scale(1); }
+        }
       `}</style>
 
       <div
@@ -649,7 +671,6 @@ export default function MazePage() {
           <span>{TOP_TEXT_PLAYING}</span>
         ) : (
           <>
-            {/* Stylized circle matching the player */}
             <div className="block h-[2em] w-[2em] rounded-full border-[3px] border-[#ff0033] bg-black select-none" />
             <span>{hasRetried ? TOP_TEXT_RETRY : TOP_TEXT_START}</span>
           </>
@@ -683,13 +704,10 @@ export default function MazePage() {
             style={{
               left: `${(START.x / CANVAS_W) * 100}%`,
               top: `${(START.y / CANVAS_H) * 100}%`,
-              // Scale the button based on the PLAYER_RADIUS relative to the canvas size
               width: `${((PLAYER_RADIUS * 2) / CANVAS_H) * 100}%`,
               aspectRatio: "1 / 1",
               animation: "mazeCursorPulse 1.2s ease-in-out infinite",
               transformOrigin: "center center",
-              // The pulse animation already centers the button on START via translate(-50%, -50%).
-              // Make sure no other translate stacks on top of it (that was shifting it left/up).
               translate: "none",
               "--tip-x": "-50%",
               "--tip-y": "-50%",
@@ -701,13 +719,26 @@ export default function MazePage() {
         )}
 
         {aaliyahFlash && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-black">
-            <img
-              src={AALIYAH_IMAGE_SRC}
-              alt="Aaliyah"
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-red-500/10" />
+          <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden pointer-events-none">
+            {scareFrame < 3 ? (
+              /* Scares 1-3: Coming out of the maze, with flicker */
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={SCARE_IMAGES[scareFrame]}
+                alt="Jumpscare"
+                className="w-[150%] h-[150%] object-contain animate-[scareFlicker_0.2s_ease-in-out_infinite] drop-shadow-[0_0_20px_rgba(255,0,0,0.8)]"
+              />
+            ) : (
+              /* Scare 4: Full screen */
+              <div className="fixed inset-0 z-[100] flex bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={SCARE_IMAGES[3]}
+                  alt="Jumpscare"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

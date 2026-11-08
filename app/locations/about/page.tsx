@@ -22,6 +22,9 @@ const plexMonoRegular = IBM_Plex_Mono({
   display: "swap",
 });
 
+const INSTAGRAM_URL =
+  "https://www.instagram.com/4li.ahhh?utm_source=ig_web_button_share_sheet&obrf=ZDNlZDc0MzIxNw==";
+
 function BottomLines() {
   const W = 1082;
   const H = 425;
@@ -60,7 +63,15 @@ function BottomLines() {
   );
 }
 
-function AdventureHeading({ fontClass }: { fontClass: string }) {
+function AdventureHeading({
+  fontClass,
+  text = "About Me",
+  size = "default",
+}: {
+  fontClass: string;
+  text?: string;
+  size?: "default" | "compact";
+}) {
   const layer = "col-start-1 row-start-1";
   const STEPS = 10;
   const dark = [47, 88, 160];
@@ -76,13 +87,18 @@ function AdventureHeading({ fontClass }: { fontClass: string }) {
   return (
     <h2
       className={`${fontClass} grid grid-cols-1 leading-[1.05]`}
-      style={{ fontSize: "clamp(1.9rem, 11cqw, 4.5rem)" }}
+      style={{
+        fontSize:
+          size === "compact"
+            ? "clamp(1.6rem, 8cqw, 3.25rem)"
+            : "clamp(1.75rem, 9.5cqw, 3.75rem)",
+      }}
     >
       <span aria-hidden="true" className={layer} style={{ color: "#2f58a0", textShadow: `${extrusion}, ${soft}` }}>
-        About Me
+        {text}
       </span>
       <span className={layer} style={{ color: "#000" }}>
-        About Me
+        {text}
       </span>
     </h2>
   );
@@ -131,7 +147,7 @@ function ShapeCluster({ className, layout }: { className: string; layout: "a" | 
 
 export default function AboutPage() {
   return (
-    <main className="no-scrollbar h-[100svh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth bg-[#fafaf8]">
+    <main className="no-scrollbar relative h-[100svh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth bg-[#fafaf8]">
       <style>{`
         @keyframes wiggle1 { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
         @keyframes wiggle2 { 0%, 100% { transform: rotate(10deg); } 50% { transform: rotate(-15deg); } }
@@ -149,61 +165,143 @@ export default function AboutPage() {
         .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
       `}</style>
 
+      {/* ===== FIXED BACKGROUND (does not move on scroll) ===== */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-[#7ab478] to-[#d4eab3]"
+      >
+        <BottomLines />
+        <ShapeCluster layout="a" className="right-[6%] top-[11%] md:right-auto md:left-[5%] md:top-[18%]" />
+        <ShapeCluster layout="b" className="right-[6%] bottom-[7%] md:right-auto md:left-[42%] md:bottom-[14%]" />
+      </div>
+
       <div className="fixed top-0 left-0 z-50 w-full">
         <SchoolHeader />
       </div>
 
-      {/* ============ ABOUT SECTION ============ */}
+      {/* ============ SECTION 1: ABOUT ============ */}
       <section
         id="about"
-        className="relative flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden bg-gradient-to-b from-[#7ab478] to-[#d4eab3]"
+        className="relative z-10 flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden"
       >
-        <BottomLines />
-
-        {/* Floating Shape Clusters */}
-        <ShapeCluster layout="a" className="right-[6%] top-[11%] md:right-auto md:left-[5%] md:top-[18%]" />
-        <ShapeCluster layout="b" className="right-[6%] bottom-[7%] md:right-auto md:left-[42%] md:bottom-[14%]" />
-
-        <div className="relative z-10 flex flex-1 items-center px-4 pb-12 pt-24 sm:px-8 md:px-10">
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-8 md:grid-cols-[1fr_1.2fr] md:gap-12 lg:gap-20">
-            
+        <div className="relative z-10 flex flex-1 items-center px-5 pb-10 pt-24 sm:px-8 sm:pb-12 md:px-10">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-6 sm:gap-8 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:gap-10 lg:gap-16">
             {/* Left Column: Image */}
             <div className="relative flex w-full items-center justify-center md:justify-start">
-              <div className="relative w-full max-w-[280px] sm:max-w-[380px] md:max-w-full aspect-square drop-shadow-2xl">
+              <div className="relative aspect-square w-full max-w-[220px] drop-shadow-2xl sm:max-w-[300px] md:max-w-full">
                 <Image
                   src="/images/map/aaliyah1.png"
-                  alt="Aaliyah"
+                  alt="Aaliyah DeGuia"
                   fill
                   priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-contain md:scale-110 lg:scale-125"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  className="object-contain md:scale-105 lg:scale-110"
                 />
               </div>
             </div>
 
-            {/* Right Column: Text (Removed slide-up-anim so it is visible) */}
-            <div className="min-w-0 w-full mt-4 md:mt-0 flex flex-col items-center md:items-start text-center md:text-left" style={{ containerType: "inline-size" }}>
-              <div className="mb-4 md:mb-8 w-full">
+            {/* Right Column: Text */}
+            <div
+              className="flex w-full min-w-0 flex-col items-center text-center md:items-start md:text-left"
+              style={{ containerType: "inline-size" }}
+            >
+              <div className="mb-3 w-full sm:mb-4 md:mb-5">
                 <AdventureHeading fontClass={sifonn.className} />
               </div>
-              
-              <div className={`${plexMonoRegular.className} w-full space-y-4 md:space-y-6 text-[clamp(0.95rem,2vw,1.35rem)] leading-relaxed text-[#111]`}>
-                <p>6</p>
-                <p>seven</p>
+
+              <div
+                className={`${plexMonoRegular.className} w-full space-y-3 text-[clamp(0.8rem,1.55vw,1.05rem)] leading-[1.55] text-[#111] sm:space-y-3.5 md:space-y-4`}
+              >
+                <p>
+                  Hi everyone! I&apos;m Aaliyah DeGuia, but you guys can just call me Ali. I&apos;m 19
+                  years old, a student Fiarcian Ambassador or FAM in short. I am your official virtual
+                  tour guide for the University of Santo Fiarce - Manila Campus.
+                </p>
+                <p>
+                  My goal is simple: I want to make sure you fall in love with this campus just like I
+                  did, all the while giving you an inside scoop on what you actually need during your
+                  stay here at USF.
+                </p>
+                <p>
+                  If you want me to personally tour you or if you have any specific questions regarding
+                  USF&apos;s systems, you can connect with me on Instagram!
+                </p>
               </div>
-              
-              <div className="mt-8 flex w-full justify-center md:justify-start">
-                <button
-                  type="button"
-                  onClick={() => { /* TODO */ }}
-                  className={`${plexMonoRegular.className} border-2 border-black bg-[#c9c9c9] px-6 py-2 text-[clamp(0.875rem,1.5vw,1rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff] sm:px-8`}
+
+              <div className="mt-5 flex w-full justify-center sm:mt-6 md:mt-7 md:justify-start">
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${plexMonoRegular.className} border-2 border-black bg-[#c9c9c9] px-5 py-1.5 text-[clamp(0.75rem,1.2vw,0.95rem)] font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff] sm:px-7 sm:py-2`}
                 >
                   instagram?
-                </button>
+                </a>
               </div>
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ============ SECTION 2: USF HISTORY ============ */}
+      <section
+        id="usf"
+        className="relative z-10 flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden"
+      >
+        <div className="relative z-10 flex flex-1 items-center px-5 pb-10 pt-24 sm:px-8 sm:pb-12 md:px-10">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-6 sm:gap-8 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:gap-10 lg:gap-16">
+            {/* Left Column: Seal */}
+            <div className="relative flex w-full items-center justify-center md:justify-start">
+              <div className="relative aspect-square w-full max-w-[200px] drop-shadow-2xl sm:max-w-[280px] md:max-w-full">
+                <Image
+                  src="/images/main/seal.png"
+                  alt="University of Santo Fiarce seal"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  className="object-contain md:scale-105 lg:scale-110"
+                />
+              </div>
+            </div>
+
+            {/* Right Column: Text */}
+            <div
+              className="flex w-full min-w-0 flex-col items-center text-center md:items-start md:text-left"
+              style={{ containerType: "inline-size" }}
+            >
+              <div className="mb-3 w-full sm:mb-4 md:mb-5">
+                <AdventureHeading fontClass={sifonn.className} text="Our History" size="compact" />
+              </div>
+
+              <div
+                className={`${plexMonoRegular.className} w-full space-y-3 text-[clamp(0.78rem,1.45vw,1rem)] leading-[1.55] text-[#111] sm:space-y-3.5 md:space-y-4`}
+              >
+                <p>
+                  The University of Santo Fiarce (USF) was founded with St. Fiarce in mind. St. Fiarce
+                  is the patron saint of nature and community, dedicating his life to caring for the
+                  natural world and building connections between people and nature at the core of their
+                  everyday life. Inspired by his teachings, the university follows the motto &ldquo;Ad
+                  Terram Revertum,&rdquo; which means &ldquo;I shall return to the earth.&rdquo; Which
+                  is why we instill oneness with nature and environmental consciousness within its
+                  students.
+                </p>
+                <p>
+                  Over the years, USF has grown into a vibrant and bustling institution with students
+                  across the Philippines applying to get into the college. The institution reflects the
+                  values of St. Fiarce through its green initiatives, sustainable campus design, and a
+                  strong sense of fellowship among its staff, students, and teachers.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ SECTION 3: PLACEHOLDER ============ */}
+      <section
+        id="placeholder"
+        className="relative z-10 flex min-h-[100svh] w-full shrink-0 snap-start flex-col items-center justify-center overflow-hidden"
+      >
+        <p className={`${plexMono.className} text-[clamp(2rem,10vw,6rem)] text-[#2f58a0]`}>6767</p>
       </section>
     </main>
   );

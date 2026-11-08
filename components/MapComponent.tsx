@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState, useEffect, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { readProgress, writeProgress } from "@/lib/progress";
 
 const IMG_DIR = "/images/maze";
 const CURSOR_SRC = `${IMG_DIR}/mazeCursor.png`;
@@ -120,11 +121,16 @@ type MapComponentProps = {
   hoverOnly?: LocationName;
   forceHoverAll?: boolean;
   muteForced?: boolean;
+  autoStartVolume?: number;
+  onResetSequence?: () => void;
   overlay?: ReactNode;
   fontClassName?: string;
   className?: string;
   style?: CSSProperties;
 };
+
+type Direction = "up" | "down" | "left" | "right";
+const TARGET_SEQUENCE: Direction[] = ["up", "down", "left", "right"];
 
 export default function MapComponent({
   onLocationClick,
@@ -133,6 +139,8 @@ export default function MapComponent({
   hoverOnly,
   forceHoverAll = false,
   muteForced = false,
+  autoStartVolume,
+  onResetSequence,
   overlay,
   fontClassName = "",
   className,
@@ -144,52 +152,144 @@ export default function MapComponent({
   const diningId = `${uid}-dining`;
 
   const bgmRef = useRef<HTMLAudioElement | null>(null);
-  const [bgmVolume, setBgmVolume] = useState(50);
-  const [isMuted, setIsMuted] = useState(true);
+  const initial = typeof window !== "undefined" ? readProgress() : null;
+
+  // Default volume is 3 if there's no stored value AND no autoStartVolume.
+  const [bgmVolume, setBgmVolume] = useState<number>(
+    autoStartVolume ?? initial?.bgmVolume ?? 3
+  );
+  const [isMuted, setIsMuted] = useState<boolean>(
+    autoStartVolume != null ? false : (initial?.bgmMuted ?? true)
+  );
+
+  const seqRef = useRef<Direction[]>([]);
+  const lastPressRef = useRef<number>(0);
+  const [showResetFlash, setShowResetFlash] = useState(false);
 
   useEffect(() => {
+    if (bgmRef.current) {
+      try {
+        bgmRef.current.pause();
+        bgmRef.current.currentTime = 0;
+        bgmRef.current.src = "";
+      } catch {}
+      bgmRef.current = null;
+    }
+
     const audio = new Audio(BGM_SRC);
     audio.loop = true;
-    audio.volume = bgmVolume / 100;
-    audio.muted = isMuted;
+    audio.volume = (autoStartVolume ?? initial?.bgmVolume ?? 3) / 100;
+    audio.muted = autoStartVolume != null ? false : (initial?.bgmMuted ?? true);
     bgmRef.current = audio;
+
+    const savedTime = initial?.bgmCurrentTime ?? 0;
+    const onCanPlay = () => {
+      if (savedTime > 0) {
+        try { audio.currentTime = savedTime; } catch {}
+      }
+    };
+    audio.addEventListener("loadedmetadata", onCanPlay, { once: true });
+
     audio.play().catch(() => {});
 
-    return () => {
+    const persistTime = () => {
+      if (audio.currentTime > 0) {
+        writeProgress({ bgmCurrentTime: audio.currentTime });
+      }
+    };
+
+    const onBeforeUnload = () => {
+      persistTime();
       audio.pause();
+    };
+    const onVis = () => {
+      if (document.hidden) {
+        persistTime();
+        audio.pause();
+      }
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("visibilitychange", onVis);
+
+    const interval = window.setInterval(() => {
+      if (!audio.paused && audio.currentTime > 0) {
+        writeProgress({ bgmCurrentTime: audio.currentTime });
+      }
+    }, 3000);
+
+    return () => {
+      persistTime();
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("visibilitychange", onVis);
+      window.clearInterval(interval);
+      audio.pause();
+      try { audio.currentTime = 0; audio.src = ""; } catch {}
+      if (bgmRef.current === audio) bgmRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (bgmRef.current) bgmRef.current.volume = bgmVolume / 100;
+    writeProgress({ bgmVolume });
   }, [bgmVolume]);
 
   useEffect(() => {
-    if (bgmRef.current) {
-      bgmRef.current.muted = isMuted;
-      if (!isMuted) bgmRef.current.play().catch(() => {});
+    if (!bgmRef.current) return;
+    if (isMuted) {
+      bgmRef.current.pause();
+      bgmRef.current.muted = true;
+    } else {
+      bgmRef.current.muted = false;
+      bgmRef.current.play().catch(() => {});
     }
+    writeProgress({ bgmMuted: isMuted, bgmWasPlaying: !isMuted });
   }, [isMuted]);
 
-  // Pause during scary; don't auto-resume after muteForced ends.
   useEffect(() => {
     if (!bgmRef.current) return;
     if (muteForced) bgmRef.current.pause();
   }, [muteForced]);
 
   const toggleMute = () => {
-    if (muteForced) return; // guard only — UI looks normal
+    if (muteForced) return;
     setIsMuted((prev) => !prev);
+  };
+
+  const handleDirection = (dir: Direction) => {
+    const now = Date.now();
+    const gap = now - lastPressRef.current;
+
+    let next = gap > 2000 ? [] : seqRef.current;
+    next = [...next, dir].slice(-TARGET_SEQUENCE.length);
+    seqRef.current = next;
+    lastPressRef.current = now;
+
+    if (
+      next.length === TARGET_SEQUENCE.length &&
+      next.every((d, i) => d === TARGET_SEQUENCE[i])
+    ) {
+      seqRef.current = [];
+      lastPressRef.current = 0;
+      setShowResetFlash(true);
+
+      if (bgmRef.current) {
+        try {
+          bgmRef.current.pause();
+          bgmRef.current.currentTime = 0;
+          bgmRef.current.src = "";
+        } catch {}
+        bgmRef.current = null;
+      }
+
+      onResetSequence?.();
+    }
   };
 
   const activate = (name: LocationName, href: string) => {
     if (disabled) return;
-    if (bgmRef.current && !muteForced) {
-      if (bgmRef.current.muted) {
-        bgmRef.current.muted = false;
-        setIsMuted(false);
-      }
+    if (bgmRef.current && !isMuted && !muteForced) {
       bgmRef.current.play().catch(() => {});
     }
     if (onLocationClick) onLocationClick(name, href);
@@ -272,11 +372,7 @@ export default function MapComponent({
           margin-top: -6px;
           border-radius: 3px;
           background: repeating-linear-gradient(
-            90deg,
-            #d9d9d9 0px,
-            #d9d9d9 1.5px,
-            #a0a0a0 1.5px,
-            #a0a0a0 3px
+            90deg, #d9d9d9 0px, #d9d9d9 1.5px, #a0a0a0 1.5px, #a0a0a0 3px
           );
           border: 1px solid #000;
           box-shadow: inset 0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.6);
@@ -287,16 +383,29 @@ export default function MapComponent({
           height: 18px;
           border-radius: 3px;
           background: repeating-linear-gradient(
-            90deg,
-            #d9d9d9 0px,
-            #d9d9d9 1.5px,
-            #a0a0a0 1.5px,
-            #a0a0a0 3px
+            90deg, #d9d9d9 0px, #d9d9d9 1.5px, #a0a0a0 1.5px, #a0a0a0 3px
           );
           border: 1px solid #000;
           box-shadow: inset 0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.6);
           cursor: pointer;
         }
+
+        .dp-btn {
+          position: absolute;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          outline: none;
+          z-index: 5;
+        }
+        .dp-btn:active { box-shadow: inset 0 0 6px rgba(0,0,0,0.7); }
+        @keyframes reset-flash {
+          0% { opacity: 0; }
+          20% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        .reset-flash { animation: reset-flash 800ms ease-out forwards; }
       `}</style>
 
       <div
@@ -313,7 +422,6 @@ export default function MapComponent({
           ].join(", "),
         }}
       >
-        {/* Audio control — always looks the same. Only handlers are guarded. */}
         <div
           className="absolute z-50 flex flex-col items-center"
           style={{ right: cq(5), top: cq(3.5), width: cq(12) }}
@@ -333,9 +441,7 @@ export default function MapComponent({
               cursor: "pointer",
             }}
           >
-            <span style={{ fontSize: cq(1.8), lineHeight: 1 }}>
-              {isMuted ? "🔇" : "🔊"}
-            </span>
+            <span style={{ fontSize: cq(1.8), lineHeight: 1 }}>{isMuted ? "🔇" : "🔊"}</span>
             <span style={{ fontSize: cq(1.5), color: "#fff", letterSpacing: "0.05em", fontWeight: "bold" }}>
               {isMuted ? "OFF" : "ON"}
             </span>
@@ -355,11 +461,11 @@ export default function MapComponent({
             <input
               type="range"
               min="0"
-              max="100"
+              max="20"
               step="1"
               value={bgmVolume}
               onChange={(e) => {
-                if (muteForced) return; // guard only — UI looks normal
+                if (muteForced) return;
                 setBgmVolume(parseInt(e.target.value, 10));
                 if (isMuted) setIsMuted(false);
               }}
@@ -396,11 +502,7 @@ export default function MapComponent({
             background: COLORS.screen,
           }}
         >
-          <svg
-            viewBox={`${VB.x} ${VB.y} ${VB.w} ${VB.h}`}
-            className="block h-full w-full"
-            aria-label="Campus map"
-          >
+          <svg viewBox={`${VB.x} ${VB.y} ${VB.w} ${VB.h}`} className="block h-full w-full" aria-label="Campus map">
             <defs>
               <g id={grassId} fill="none" stroke={COLORS.decor} strokeWidth="1.5" strokeLinecap="round">
                 <path d="M0 0 C-2 -8 -6 -12 -9 -17" />
@@ -509,6 +611,14 @@ export default function MapComponent({
           />
 
           <div className="pointer-events-none absolute inset-0">{overlay}</div>
+
+          {showResetFlash && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/80 z-[70] reset-flash">
+              <span className={`${fontClassName} text-white text-3xl font-bold tracking-widest`}>
+                RESET
+              </span>
+            </div>
+          )}
         </div>
 
         <div aria-hidden="true">
@@ -523,6 +633,22 @@ export default function MapComponent({
           {[0, 1, 2, 3, 4].map((i) => (
             <div key={i} className="absolute" style={{ left: cq(82 + i * 2.3), top: cq(53), width: cq(0.8), height: cq(8), background: "#6b6b6b", borderRadius: cq(0.4), transform: "rotate(25deg)" }} />
           ))}
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            left: cq(4.2),
+            top: cq(25),
+            width: cq(14.6),
+            height: cq(14.6),
+            zIndex: 10,
+          }}
+        >
+          <button type="button" aria-label="D-pad up" className="dp-btn" style={{ left: "33.3%", top: "0%", width: "33.4%", height: "33.3%" }} onClick={() => handleDirection("up")} />
+          <button type="button" aria-label="D-pad down" className="dp-btn" style={{ left: "33.3%", top: "66.7%", width: "33.4%", height: "33.3%" }} onClick={() => handleDirection("down")} />
+          <button type="button" aria-label="D-pad left" className="dp-btn" style={{ left: "0%", top: "33.3%", width: "33.3%", height: "33.4%" }} onClick={() => handleDirection("left")} />
+          <button type="button" aria-label="D-pad right" className="dp-btn" style={{ left: "66.7%", top: "33.3%", width: "33.3%", height: "33.4%" }} onClick={() => handleDirection("right")} />
         </div>
       </div>
     </div>
