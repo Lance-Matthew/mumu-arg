@@ -17,16 +17,6 @@ export default function GrayEndingPage() {
             allowFullScreen
             className="absolute inset-0 h-full w-full border-0"
           />
-          
-          {/* 
-            Invisible mask to cover the Settings and PiP buttons, 
-            leaving the fullscreen button exposed. 
-          */}
-          <div 
-            className="absolute bottom-2 right-14 z-10 bg-black/90"
-            style={{ width: '84px', height: '40px' }}
-            aria-hidden="true"
-          />
         </div>
       </div>
 
