@@ -130,7 +130,7 @@ type MapComponentProps = {
 };
 
 type Direction = "up" | "down" | "left" | "right";
-const TARGET_SEQUENCE: Direction[] = ["up", "down", "left", "right"];
+const TARGET_SEQUENCE: Direction[] = ["up", "down", "up", "down", "left", "right", "left", "right"];
 
 export default function MapComponent({
   onLocationClick,
@@ -154,7 +154,6 @@ export default function MapComponent({
   const bgmRef = useRef<HTMLAudioElement | null>(null);
   const initial = typeof window !== "undefined" ? readProgress() : null;
 
-  // Default volume is 3 if there's no stored value AND no autoStartVolume.
   const [bgmVolume, setBgmVolume] = useState<number>(
     autoStartVolume ?? initial?.bgmVolume ?? 3
   );
@@ -394,7 +393,7 @@ export default function MapComponent({
           position: absolute;
           background: transparent;
           border: none;
-          cursor: pointer;
+          cursor: default;
           outline: none;
           z-index: 5;
         }

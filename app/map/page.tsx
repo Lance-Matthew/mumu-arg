@@ -53,6 +53,7 @@ const ASSETS = {
   scaryAudio: "/audio/aaliyahScarySounds.mp3",
   happyAudio: "/audio/aaliyahCongrats.mp3",
   jumpscare: "/videos/aaliyahJumpscare.mp4",
+  handheldSound: "/audio/handheldSound.mp3",
 };
 
 const LOCK_BUTTONS_DURING_TUTORIAL = true;
@@ -97,9 +98,15 @@ const FRAMES = [
   ASSETS.happy1, ASSETS.happy2, ASSETS.happy3,
 ];
 
+// Shared bottom-fade mask used by both the desktop and mobile Aaliyah stacks.
+// Multi-stop so the alpha eases out instead of a visible hard cut.
+const AALIYAH_FADE_DESKTOP =
+  "linear-gradient(to bottom, black 0%, black 72%, rgba(0,0,0,0.85) 82%, rgba(0,0,0,0.4) 92%, transparent 100%)";
+const AALIYAH_FADE_MOBILE =
+  "linear-gradient(to bottom, black 0%, black 70%, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.4) 91%, transparent 100%)";
+
 type Phase = "intro" | "scary" | "postScary" | "happy" | "empty" | "video";
 
-/* ── responsive hook ─────────────────────────────────────────── */
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
@@ -169,11 +176,14 @@ export default function MapPage() {
   const tutorialRef = useRef<HTMLAudioElement | null>(null);
   const scaryRef = useRef<HTMLAudioElement | null>(null);
   const happyRef = useRef<HTMLAudioElement | null>(null);
+  const handheldSoundRef = useRef<HTMLAudioElement | null>(null);
 
   const happyStartedRef = useRef(false);
 
   useEffect(() => {
     setHydrated(true);
+    handheldSoundRef.current = new Audio(ASSETS.handheldSound);
+    handheldSoundRef.current.volume = 0.6; // 60% volume
   }, []);
 
   useEffect(() => {
@@ -303,7 +313,12 @@ export default function MapPage() {
     }
   };
 
-  const handleLocation = (name: LocationName, href: string) => {
+  const handleLocationWrapper = (name: LocationName, href: string) => {
+    if (handheldSoundRef.current) {
+      handheldSoundRef.current.currentTime = 0;
+      handheldSoundRef.current.play().catch(() => {});
+    }
+
     if (phase !== "intro" && phase !== "postScary" && !isHappyFinished) return;
     if (phase === "postScary" && name !== "Library") return;
 
@@ -522,7 +537,7 @@ export default function MapPage() {
             }}
           >
             <MapComponent
-              onLocationClick={handleLocation}
+              onLocationClick={handleLocationWrapper}
               disabled={!canClick}
               pressedLocation={showHand ? "Library" : undefined}
               hoverOnly={phase === "postScary" ? "Library" : undefined}
@@ -540,7 +555,9 @@ export default function MapPage() {
             style={{
               left: "-17.5vw", top: "9.7vw", width: "88.2vw",
               opacity: hideAaliyah ? 0 : 1,
-              transition: "opacity 0.7s ease-in-out"
+              transition: "opacity 0.7s ease-in-out",
+              WebkitMaskImage: AALIYAH_FADE_DESKTOP,
+              maskImage: AALIYAH_FADE_DESKTOP,
             }}
           >
             {FRAMES.map((src, i) => {
@@ -618,7 +635,12 @@ export default function MapPage() {
 
           <div
             className={`relative w-full max-w-[18rem] pointer-events-none mt-4 z-40 ${current?.glitch ? "glitch" : ""}`}
-            style={{ opacity: hideAaliyah ? 0 : 1, transition: "opacity 0.7s ease-in-out" }}
+            style={{ 
+              opacity: hideAaliyah ? 0 : 1, 
+              transition: "opacity 0.7s ease-in-out",
+              WebkitMaskImage: AALIYAH_FADE_MOBILE,
+              maskImage: AALIYAH_FADE_MOBILE,
+            }}
           >
             {FRAMES.map((src, i) => {
               const isHappy1 = src === ASSETS.happy1;
@@ -659,7 +681,7 @@ export default function MapPage() {
             }}
           >
             <MapComponent
-              onLocationClick={handleLocation}
+              onLocationClick={handleLocationWrapper}
               disabled={!canClick}
               pressedLocation={showHand ? "Library" : undefined}
               hoverOnly={phase === "postScary" ? "Library" : undefined}
@@ -689,7 +711,6 @@ export default function MapPage() {
           playsInline
           onEnded={restart}
           onError={restart}
-          //volume used to be here
           className="fixed inset-0 z-[200] h-full w-full bg-black object-cover"
         />
       )}

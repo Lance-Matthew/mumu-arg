@@ -673,13 +673,42 @@ export default function MazePage() {
           }
         }
 
-        @keyframes scareFlicker {
-          0% { opacity: 1; transform: scale(1); }
-          20% { opacity: 0.2; transform: scale(1.05); }
-          40% { opacity: 1; transform: scale(0.95); }
-          60% { opacity: 0.4; transform: scale(1.02); }
-          80% { opacity: 1; transform: scale(1); }
-          100% { opacity: 1; transform: scale(1); }
+        @keyframes vhsGlitch {
+          0%, 100% { 
+            opacity: 1; 
+            transform: translateX(0); 
+            filter: drop-shadow(1px 0 0 rgba(255,0,0,0.2)) drop-shadow(-1px 0 0 rgba(0,0,255,0.2));
+          }
+          10% { 
+            opacity: 0.8; 
+            transform: translateX(-4px); 
+            filter: drop-shadow(2px 0 0 rgba(255,0,0,0.4)) drop-shadow(-2px 0 0 rgba(0,0,255,0.4));
+          }
+          20% { 
+            opacity: 1; 
+            transform: translateX(4px); 
+            filter: drop-shadow(1px 0 0 rgba(255,0,0,0.2)) drop-shadow(-1px 0 0 rgba(0,0,255,0.2));
+          }
+          30% { 
+            opacity: 0.9; 
+            transform: translateX(0); 
+            filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+          }
+          40% { 
+            opacity: 1; 
+            transform: translateX(2px); 
+            filter: drop-shadow(-2px 0 0 rgba(255,0,0,0.3)) drop-shadow(2px 0 0 rgba(0,0,255,0.3));
+          }
+          50% { 
+            opacity: 0.8; 
+            transform: translateX(-2px); 
+            filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+          }
+          60% { 
+            opacity: 1; 
+            transform: translateX(0); 
+            filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+          }
         }
       `}</style>
 
@@ -705,7 +734,7 @@ export default function MazePage() {
           onPointerMove={onCanvasPointerMove}
           className={`block w-full touch-none select-none border-0 bg-black ${
             started ? "cursor-none" : "cursor-crosshair"
-          }`}
+          } ${aaliyahFlash ? "animate-[vhsGlitch_0.2s_ease-in-out_infinite]" : ""}`}
           style={{ aspectRatio: "16 / 9" }}
         />
 
@@ -733,22 +762,22 @@ export default function MazePage() {
         )}
 
         {aaliyahFlash && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none bg-black">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
             {scareFrame < 3 ? (
-              /* Scares 1-3: Blacked out background with flicker effect */
+              /* Scares 1-3: Solid transparent PNGs overlay */
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={SCARE_IMAGES[scareFrame]}
                 alt="Jumpscare"
-                className="w-full h-full object-cover animate-[scareFlicker_0.15s_ease-in-out_infinite]"
+                className="w-full h-full object-contain"
               />
             ) : (
-              /* Scare 4: Full screen solid image, zoomed in extra 20% (from 1.4 to 1.6) */
+              /* Scare 4: Solid transparent PNG overlay with scale */
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={SCARE_IMAGES[3]}
                 alt="Jumpscare"
-                className="fixed inset-0 h-full w-full object-cover scale-[1.6]"
+                className="fixed inset-0 h-full w-full object-contain scale-[1.6]"
               />
             )}
           </div>

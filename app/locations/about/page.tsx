@@ -95,10 +95,14 @@ function AdventureHeading({
   fontClass,
   text = "About Me",
   size = "default",
+  className = "",
+  center = false,
 }: {
   fontClass: string;
   text?: string;
   size?: "default" | "compact";
+  className?: string;
+  center?: boolean;
 }) {
   const layer = "col-start-1 row-start-1";
   const STEPS = 10;
@@ -123,7 +127,9 @@ function AdventureHeading({
 
   return (
     <h2
-      className={`${fontClass} grid grid-cols-1 leading-[1.05]`}
+      className={`${fontClass} grid grid-cols-1 leading-[1.05] ${
+        center ? "justify-items-center text-center" : ""
+      } ${className}`}
       style={{
         fontSize:
           size === "compact"
@@ -275,6 +281,141 @@ function ShapeCluster({
   );
 }
 
+// ---------- Credits data ----------
+const CREDITS_PRODUCTION = [
+  { role: "Produced by", names: ["Team MUMU"] },
+  { role: "Writer / Director", names: ['Anna Denise "Andie" Abad Santos'] },
+  { role: "Assistant Director", names: ["John Clarence Abcede"] },
+  { role: "Production Coordinator", names: ["John Clarence Abcede"] },
+  {
+    role: "Camera Operator",
+    names: [
+      "Seth Deandre Oranga",
+      'Anna Denise "Andie" Abad Santos',
+      "Samantha Maurice Sanz",
+      "John Clarence Abcede",
+    ],
+  },
+  {
+    role: "Audio Technician",
+    names: ["John Clarence Abcede", "Seth Deandre Oranga"],
+  },
+  {
+    role: "Gaffer",
+    names: ["John Clarence Abcede", "Seth Deandre Oranga"],
+  },
+  { role: "Props Design", names: ['Anna Denise "Andie" Abad Santos'] },
+  {
+    role: "Prop Artist",
+    names: [
+      'Anna Denise "Andie" Abad Santos',
+      "John Clarence Abcede",
+      "Seth Deandre Oranga",
+      "Samantha Maurice Sanz",
+    ],
+  },
+  {
+    role: "Make-up",
+    names: ['Anna Denise "Andie" Abad Santos', "Samantha Maurice Sanz"],
+  },
+  {
+    role: "Best Boy",
+    names: ["Harvey Lanzo Chua", "Jericho Vince Dela Guerra", "Eros Arroyo"],
+  },
+  { role: "Elevator Operator", names: ["Rodel Prangan"] },
+  { role: "Video Editor", names: ["John Clarence Abcede"] },
+];
+
+const CREDITS_CAST = [
+  { role: 'Aaliyah "Ali" DeGuia', names: ["Samantha Maurice Sanz"] },
+  { role: "Kuya Guard", names: ["John Clarence Abcede"] },
+  { role: "Manananggal", names: ['Anna Denise "Andie" Abad Santos'] },
+  { role: "White Lady", names: ['Anna Denise "Andie" Abad Santos'] },
+  {
+    role: "Voice of Children Singing",
+    names: ['Anna Denise "Andie" Abad Santos'],
+  },
+  {
+    role: "Voice of Aaliyah's Mother",
+    names: ["Petrina Beatrice Beltran"],
+  },
+  { role: "Multo", names: ["Harvey Lanzo Chua"] },
+  { role: "Voice of Tiyanak", names: ['Anna Denise "Andie" Abad Santos'] },
+  { role: "Voice of Aswang", names: ['Anna Denise "Andie" Abad Santos'] },
+];
+
+const CREDITS_WEBSITE = [
+  {
+    role: "Website Developer",
+    names: ['Lance Matthew "Levanic" Manaois <3'],
+  },
+  {
+    role: "Website UI/UX Designer",
+    names: ['Anna Denise "Andie" Abad Santos'],
+  },
+  { role: "Website Copywriter", names: ["Seth Deandre Oranga"] },
+  { role: "Website Project Manager", names: ["John Clarence Abcede"] },
+];
+
+const CREDITS_MUSIC = [
+  "Paru-Parong Bukid Tagalog Rendition originally composed by Felipe de León",
+  "Backing Cover by Cristian Daniel Desucatan",
+  "Universal Commercial Tunes_ Vol. 1 by Steven Andolf",
+  "Powerup! 8-bit Music by Jeremy Blake",
+];
+
+const CREDITS_THANKS = [
+  "Enrique and Lilia Abad Santos",
+  "Jenny and Waldo Abad Santos",
+  "Harvey Lanzo Chua",
+  "Angelie San Diego",
+  "Kuya Roland, Ms. Alma, and Ms. Pat of De La Salle University Security",
+  "Karen Cecille Natividad of DLSU Libraries",
+  "Sir Raymond of De La Salle University Strategic Communications",
+  "Dr. Consuelo Angela Santos",
+  "Dr. Bruno Lovric",
+  "Dr. Rupert Cao",
+  "Fr. Alejandro Mijangos",
+  "Jessica",
+];
+
+function CreditGroup({
+  title,
+  items,
+  fontClass,
+  bodyClass,
+}: {
+  title: string;
+  items: { role: string; names: string[] }[];
+  fontClass: string;
+  bodyClass: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <h3
+        className={`${fontClass} mb-4 flex items-center gap-2 text-[clamp(1rem,2.4cqw,1.35rem)] leading-tight text-[#2f58a0]`}
+      >
+        <span className="inline-block h-2 w-2 rotate-45 bg-[#7ab478]" />
+        {title}
+      </h3>
+      <ul className="space-y-3">
+        {items.map((item) => (
+          <li key={item.role + item.names.join(",")}>
+            <p className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#4b6b3a] sm:text-[0.75rem]">
+              {item.role}
+            </p>
+            <p
+              className={`${bodyClass} mt-0.5 text-[clamp(0.82rem,1.5vw,1rem)] leading-[1.5] text-[#111]`}
+            >
+              {item.names.join(" · ")}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function AboutPage() {
   return (
     <main className="no-scrollbar relative h-[100svh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth bg-[#fafaf8]">
@@ -336,9 +477,15 @@ export default function AboutPage() {
         .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
         
         .anim-sparkle { animation: sparkle-pulse 2s ease-in-out infinite; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .anim-wiggle-1, .anim-wiggle-2, .anim-wiggle-3,
+          .anim-path-1, .anim-path-2, .anim-path-3,
+          .anim-sparkle { animation: none; }
+        }
       `}</style>
 
-      {/* ===== FIXED BACKGROUND (shared by all sections, does not move on scroll) ===== */}
+      {/* ===== FIXED BACKGROUND (gradient + gray lines only) ===== */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
@@ -347,44 +494,10 @@ export default function AboutPage() {
             "linear-gradient(to bottom, #9bc86a 0%, #d7eaba 45%, #ffffff 90%)",
         }}
       >
-        {/* Gray lines, bottom-left */}
         <BottomLines
           id="aboutLines"
           stops={["#ececf5", "#c2c2c8", "#8d8d92"]}
           className="h-[30%] w-[100%] md:h-[40%] md:w-[64%]"
-        />
-
-        {/* Big pixel sparkles */}
-        <div
-          className="absolute left-[2%] top-[10%] z-[5] md:top-[12%]"
-          style={{ width: "clamp(120px, 24vw, 320px)", aspectRatio: "1 / 1" }}
-        >
-          <div className="relative h-full w-full anim-sparkle">
-            <Image
-              src="/images/sparkle.png"
-              alt=""
-              fill
-              sizes="320px"
-              className="object-contain [image-rendering:pixelated]"
-            />
-          </div>
-        </div>
-
-        {/* Bottom-left cluster */}
-        <ShapeCluster
-          layout="a"
-          noodleSrc="/images/shapes/noodle1.png"
-          outlines={{ dorito: "#ffd93b", noodle: "#7ab478", fita: "#ffd93b" }}
-          className="bottom-[2%] left-[2%] md:bottom-[3%]"
-        />
-
-        {/* Second cluster */}
-        <ShapeCluster
-          layout="b"
-          noodleSrc="/images/shapes/noodle1.png"
-          fitaSrc="/images/shapes/fita1.png"
-          outlines={{ dorito: "#7ab478", noodle: "#7ab478", fita: "#ffd93b" }}
-          className="hidden md:block md:bottom-[12%] md:left-[40%]"
         />
       </div>
 
@@ -397,16 +510,48 @@ export default function AboutPage() {
         id="about"
         className="relative z-10 flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden pt-24 md:flex-row md:items-center md:pb-10"
       >
-        {/* Photo: ~3x bigger. Everything is driven by two CSS variables so it scales with the screen:
-            --w  = size of the (square) image box
-            --cx = where Ali's horizontal center should sit
-            The image has empty space under her, so the box is pushed down until she meets the bottom edge. */}
+        {/* Floating decorations — scoped to Section 1 only */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[5]">
+          {/* Big pixel sparkle */}
+          <div
+            className="absolute left-[2%] top-[10%] md:top-[12%]"
+            style={{ width: "clamp(120px, 24vw, 320px)", aspectRatio: "1 / 1" }}
+          >
+            <div className="relative h-full w-full anim-sparkle">
+              <Image
+                src="/images/sparkle.png"
+                alt=""
+                fill
+                sizes="320px"
+                className="object-contain [image-rendering:pixelated]"
+              />
+            </div>
+          </div>
+
+          {/* Bottom-left cluster */}
+          <ShapeCluster
+            layout="a"
+            noodleSrc="/images/shapes/noodle1.png"
+            outlines={{ dorito: "#ffd93b", noodle: "#7ab478", fita: "#ffd93b" }}
+            className="bottom-[3%] left-[2%] md:bottom-[6%]"
+          />
+
+          {/* Second cluster (desktop only) */}
+          <ShapeCluster
+            layout="b"
+            noodleSrc="/images/shapes/noodle1.png"
+            fitaSrc="/images/shapes/fita1.png"
+            outlines={{ dorito: "#7ab478", noodle: "#7ab478", fita: "#ffd93b" }}
+            className="hidden md:block md:bottom-[14%] md:left-[40%]"
+          />
+        </div>
+
+        {/* Aaliyah — nudged left + down, with background-matched bottom fade */}
         <div
-          className="pointer-events-none absolute z-10 aspect-square [--cx:50vw] [--w:190vw] md:[--cx:24vw] md:[--w:min(100vw,330svh)]"
+          className="pointer-events-none absolute -bottom-[4%] left-[44%] z-10 aspect-square -translate-x-1/2 md:left-[30vw] md:-translate-x-1/2"
           style={{
-            width: "var(--w)",
-            left: "calc(var(--cx) - var(--w) * 0.322)",
-            bottom: "calc(var(--w) * -0.393)",
+            width: "min(299vw, 162.5svh)",
+            maxWidth: "min(1690px, 188.5svh)",
           }}
         >
           <Image
@@ -414,8 +559,19 @@ export default function AboutPage() {
             alt="Aaliyah DeGuia"
             fill
             priority
-            sizes="(max-width: 768px) 190vw, 186vw"
-            className="object-contain [filter:drop-shadow(16px_10px_16px_rgba(0,0,0,0.35))]"
+            sizes="(max-width: 768px) 299vw, 162svh"
+            className="object-contain object-bottom [filter:drop-shadow(16px_10px_16px_rgba(0,0,0,0.35))]"
+          />
+
+          {/* Bottom fade — matches page background so her feet blend in */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-10"
+            style={{
+              height: "18%",
+              background:
+                "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 55%, #ffffff 100%)",
+            }}
           />
         </div>
 
@@ -449,7 +605,6 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Instagram Button */}
           <div className="mt-5 flex w-full justify-center sm:mt-6 md:mt-7">
             <a
               href={INSTAGRAM_URL}
@@ -487,16 +642,31 @@ export default function AboutPage() {
         <div className="relative z-10 flex flex-1 items-center px-5 pb-10 pt-24 sm:px-8 sm:pb-12 md:px-10">
           <div className="mx-auto grid w-full max-w-6xl items-center gap-6 sm:gap-8 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:gap-10 lg:gap-16">
 
-            {/* Left Column: Seal */}
+            {/* Left Column: framed campus photo */}
             <div className="relative flex w-full items-center justify-center md:justify-start">
-              <div className="relative aspect-square w-full max-w-[200px] drop-shadow-2xl sm:max-w-[280px] md:max-w-full">
-                <Image
-                  src="/images/main/seal.png"
-                  alt="University of Santo Fiarce seal"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 40vw"
-                  className="object-contain md:scale-105 lg:scale-110"
+              <div className="relative aspect-square w-full max-w-[220px] sm:max-w-[300px] md:max-w-full">
+                {/* Offset shadow block behind the frame */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 translate-x-3 translate-y-3 rounded-sm bg-[#2f58a0] md:translate-x-4 md:translate-y-4"
                 />
+                {/* Frame + image */}
+                <div className="relative h-full w-full -rotate-2 overflow-hidden rounded-sm border-[6px] border-black bg-black shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 hover:rotate-0">
+                  <div className="relative aspect-square w-full">
+                    <Image
+                      src="/images/aboutCampus.JPG"
+                      alt="University of Santo Fiarce campus"
+                      fill
+                      sizes="(max-width: 768px) 90vw, 40vw"
+                      className="object-cover"
+                    />
+                  </div>
+                  {/* Corner accents */}
+                  <span className="pointer-events-none absolute left-1 top-1 h-3 w-3 border-l-2 border-t-2 border-[#ffd93b]" />
+                  <span className="pointer-events-none absolute right-1 top-1 h-3 w-3 border-r-2 border-t-2 border-[#ffd93b]" />
+                  <span className="pointer-events-none absolute bottom-1 left-1 h-3 w-3 border-b-2 border-l-2 border-[#ffd93b]" />
+                  <span className="pointer-events-none absolute bottom-1 right-1 h-3 w-3 border-b-2 border-r-2 border-[#ffd93b]" />
+                </div>
               </div>
             </div>
 
@@ -533,6 +703,129 @@ export default function AboutPage() {
                   strong sense of fellowship among its staff, students, and teachers.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ SECTION 3: DAANAN CREDITS ============ */}
+      <section
+        id="credits"
+        className="relative z-10 flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden"
+      >
+        <div className="relative z-10 flex flex-1 items-start px-5 pb-16 pt-24 sm:px-8 sm:pb-20 sm:pt-28 md:px-10">
+          <div className="mx-auto w-full max-w-5xl">
+            {/* Title card */}
+            <div className="flex w-full flex-col items-center text-center">
+              <p
+                className={`${plexMono.className} mb-2 text-[clamp(0.62rem,1.2vw,0.8rem)] tracking-[0.35em] text-[#4b6b3a]`}
+              >
+                A SHORT FILM BY TEAM MUMU
+              </p>
+              <div className="flex w-full justify-center">
+                <AdventureHeading
+                  fontClass={sifonn.className}
+                  text="DAANAN"
+                  size="default"
+                  center
+                />
+              </div>
+              <div
+                aria-hidden="true"
+                className="mt-4 mb-10 h-[3px] w-20 rounded-full bg-[#7ab478] sm:mb-12 sm:w-28"
+              />
+            </div>
+
+            {/* Credits grid */}
+            <div className="grid w-full grid-cols-1 gap-x-10 gap-y-10 sm:grid-cols-2 sm:gap-y-12 lg:grid-cols-3">
+              <CreditGroup
+                title="Production"
+                items={CREDITS_PRODUCTION}
+                fontClass={sifonn.className}
+                bodyClass={plexMonoRegular.className}
+              />
+              <CreditGroup
+                title="Cast"
+                items={CREDITS_CAST}
+                fontClass={sifonn.className}
+                bodyClass={plexMonoRegular.className}
+              />
+              <CreditGroup
+                title="Website"
+                items={CREDITS_WEBSITE}
+                fontClass={sifonn.className}
+                bodyClass={plexMonoRegular.className}
+              />
+
+              {/* Music */}
+              <div className="min-w-0">
+                <h3
+                  className={`${sifonn.className} mb-4 flex items-center gap-2 text-[clamp(1rem,2.4cqw,1.35rem)] leading-tight text-[#2f58a0]`}
+                >
+                  <span className="inline-block h-2 w-2 rotate-45 bg-[#7ab478]" />
+                  Music
+                </h3>
+                <ul
+                  className={`${plexMonoRegular.className} space-y-2.5 text-[clamp(0.82rem,1.5vw,1rem)] leading-[1.5] text-[#111]`}
+                >
+                  {CREDITS_MUSIC.map((line) => (
+                    <li key={line} className="flex gap-2">
+                      <span aria-hidden="true" className="text-[#7ab478]">
+                        ♪
+                      </span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Thesis Mentor */}
+              <div className="min-w-0">
+                <h3
+                  className={`${sifonn.className} mb-4 flex items-center gap-2 text-[clamp(1rem,2.4cqw,1.35rem)] leading-tight text-[#2f58a0]`}
+                >
+                  <span className="inline-block h-2 w-2 rotate-45 bg-[#7ab478]" />
+                  Thesis Mentor
+                </h3>
+                <p
+                  className={`${plexMonoRegular.className} text-[clamp(0.82rem,1.5vw,1rem)] leading-[1.5] text-[#111]`}
+                >
+                  Edward Delos Santos Cabagnot
+                </p>
+              </div>
+
+              {/* Special thanks — spans wider on lg */}
+              <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+                <h3
+                  className={`${sifonn.className} mb-4 flex items-center gap-2 text-[clamp(1rem,2.4cqw,1.35rem)] leading-tight text-[#2f58a0]`}
+                >
+                  <span className="inline-block h-2 w-2 rotate-45 bg-[#7ab478]" />
+                  Special Thanks
+                </h3>
+                <ul
+                  className={`${plexMonoRegular.className} columns-1 gap-x-6 space-y-2 text-[clamp(0.82rem,1.5vw,1rem)] leading-[1.5] text-[#111] sm:columns-2`}
+                >
+                  {CREDITS_THANKS.map((name) => (
+                    <li key={name} className="break-inside-avoid">
+                      {name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Footer mark */}
+            <div className="mt-16 flex flex-col items-center gap-3 sm:mt-20">
+              <p
+                className={`${plexMono.className} text-[clamp(0.62rem,1.1vw,0.75rem)] tracking-[0.3em] text-[#7a8a72]`}
+              >
+                TEAM MUMU · 2025
+              </p>
+              <p
+                className={`${plexMonoRegular.className} text-center text-[clamp(0.62rem,1.1vw,0.75rem)] text-[#7a8a72]`}
+              >
+                Thank you for touring USF with Ali.
+              </p>
             </div>
           </div>
         </div>

@@ -136,8 +136,7 @@ const GUIDELINES: {
     label: "Classroom courtesY",
     labelParts: ["Classroom courtes", { clue: "Y", tail: "" }],
     parts: [
-      { clue: "K", tail: "eep" },
-      " food and beverages away from the equipment, keep noise levels low in the corridors along the lecture halls, and ",
+      "Keep food and beverages away from the equipment, keep noise levels low in the corridors along the lecture halls, and ",
       { clue: "K", tail: "eep" },
       " all spaces ready for the next class.",
     ],
