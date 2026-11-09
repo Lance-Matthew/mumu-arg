@@ -531,7 +531,7 @@ export default function StemPage() {
                       className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[2px_3px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_1px_0_rgba(0,0,0,0.4)] md:-right-5 md:h-10 md:w-10"
                     >
                       <div className="relative w-2/3 h-2/3 -rotate-90">
-                        <Image src="/images/downArrow.png" alt="Right" fill sizes="40px" className="object-contain" />
+                        <Image src="/images/main/downArrow.png" alt="Right" fill sizes="40px" className="object-contain" />
                       </div>
                     </button>
                   )}

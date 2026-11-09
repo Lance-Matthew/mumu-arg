@@ -348,7 +348,7 @@ export default function TheaterPage() {
                       className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[#c9c9c9] shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-transform hover:scale-110 active:shadow-[1px_2px_0_rgba(0,0,0,0.4)] md:-right-6 md:h-12 md:w-12"
                     >
                       <div className="relative w-2/3 h-2/3 -rotate-90">
-                        <Image src="/images/downArrow.png" alt="Right" fill sizes="48px" className="object-contain" />
+                        <Image src="/images/main/downArrow.png" alt="Right" fill sizes="48px" className="object-contain" />
                       </div>
                     </button>
                   )}
