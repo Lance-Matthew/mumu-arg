@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from "next/image";
@@ -289,6 +288,11 @@ export default function AboutPage() {
           75% { transform: translate(10px, 12px); }
         }
 
+        @keyframes sparkle-pulse {
+          0%, 100% { opacity: 0.7; transform: scale(0.9); }
+          50% { opacity: 1; transform: scale(1.1); }
+        }
+
         .no-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
@@ -298,29 +302,14 @@ export default function AboutPage() {
           display: none;
         }
 
-        .anim-wiggle-1 {
-          animation: wiggle1 2s ease-in-out infinite;
-        }
-
-        .anim-wiggle-2 {
-          animation: wiggle2 2.3s ease-in-out infinite;
-        }
-
-        .anim-wiggle-3 {
-          animation: wiggle3 2.6s ease-in-out infinite;
-        }
-
-        .anim-path-1 {
-          animation: path-square 4s linear infinite;
-        }
-
-        .anim-path-2 {
-          animation: path-triangle 5s linear infinite;
-        }
-
-        .anim-path-3 {
-          animation: path-diamond 4.5s linear infinite;
-        }
+        .anim-wiggle-1 { animation: wiggle1 2s ease-in-out infinite; }
+        .anim-wiggle-2 { animation: wiggle2 2.3s ease-in-out infinite; }
+        .anim-wiggle-3 { animation: wiggle3 2.6s ease-in-out infinite; }
+        .anim-path-1 { animation: path-square 4s linear infinite; }
+        .anim-path-2 { animation: path-triangle 5s linear infinite; }
+        .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
+        
+        .anim-sparkle { animation: sparkle-pulse 2s ease-in-out infinite; }
       `}</style>
 
       {/* ===== FIXED BACKGROUND (does not move on scroll) ===== */}
@@ -330,15 +319,35 @@ export default function AboutPage() {
       >
         <BottomLines />
 
+        {/* Top left shape cluster */}
         <ShapeCluster
           layout="a"
-          className="right-[6%] top-[11%] md:right-auto md:left-[5%] md:top-[18%]"
+          className="left-[2%] top-[10%] sm:left-[4%] md:left-[5%] md:top-[18%]"
         />
 
+        {/* Bottom right shape cluster */}
         <ShapeCluster
           layout="b"
-          className="right-[6%] bottom-[7%] md:right-auto md:left-[42%] md:bottom-[14%]"
+          className="right-[2%] bottom-[10%] sm:right-[4%] md:right-[10%] md:bottom-[14%]"
         />
+
+        {/* Sparkle element - top right */}
+        <div
+          className="pointer-events-none absolute z-20 right-[5%] top-[12%] md:right-[12%] md:top-[15%]"
+          style={{ width: "clamp(48px, 8vw, 100px)", aspectRatio: "1/1" }}
+        >
+          <div className="absolute anim-path-1 w-full h-full">
+            <div className="relative w-full h-full anim-wiggle-2 anim-sparkle [filter:drop-shadow(1.5px_0_0_#fff)_drop-shadow(-1.5px_0_0_#fff)_drop-shadow(0_1.5px_0_#fff)_drop-shadow(0_-1.5px_0_#fff)]">
+              <Image
+                src="/images/sparkle.png"
+                alt=""
+                fill
+                sizes="100px"
+                className="object-contain"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="fixed top-0 left-0 z-50 w-full">
@@ -355,14 +364,15 @@ export default function AboutPage() {
 
             {/* Left Column: Image */}
             <div className="relative flex w-full items-center justify-center md:justify-start">
-              <div className="relative aspect-square w-full max-w-[660px] drop-shadow-2xl sm:max-w-[900px] md:max-w-none md:w-[150%] md:-ml-[25%]">
+              {/* Increased max size again to 250% on desktop */}
+              <div className="relative aspect-square w-full max-w-[300px] drop-shadow-2xl sm:max-w-[400px] md:max-w-none md:w-[250%] md:-ml-[60%] lg:-ml-[70%]">
                 <Image
-                  src="/images/map/aaliyah1.png"
+                  src="/images/about.png"
                   alt="Aaliyah DeGuia"
                   fill
                   priority
-                  sizes="(max-width: 768px) 100vw, 60vw"
-                  className="object-contain md:scale-105 lg:scale-110"
+                  sizes="(max-width: 768px) 100vw, 90vw"
+                  className="object-contain md:scale-100 lg:scale-105"
                 />
               </div>
             </div>
