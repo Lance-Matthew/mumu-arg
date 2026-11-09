@@ -21,8 +21,9 @@ const plexMono = IBM_Plex_Mono({
 
 const YELLOW = "#ffe793";
 
+// Updated with the new Cloudflare Stream Video URL
 const TOUR_VIDEO_SRC =
-  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/7e9f60c3852ab7f7022ab5ea46730182/manifest/video.m3u8";
+  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/297cccade9c1986cef353bcd6beee3a4/manifest/video.m3u8";
 
 function CreamHeading({
   children,

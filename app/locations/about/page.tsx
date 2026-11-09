@@ -25,7 +25,15 @@ const plexMonoRegular = IBM_Plex_Mono({
 const INSTAGRAM_URL =
   "https://www.instagram.com/4li.ahhh?utm_source=ig_web_button_share_sheet&obrf=ZDNlZDc0MzIxNw==";
 
-function BottomLines() {
+function BottomLines({
+  id = "bottomLines",
+  stops = ["#f6f6fb", "#c9c8d3", "#9d9ca5"],
+  className = "h-[34%] w-[92%] md:h-[38%] md:w-[66%]",
+}: {
+  id?: string;
+  stops?: [string, string, string] | string[];
+  className?: string;
+}) {
   const W = 1082;
   const H = 425;
 
@@ -50,20 +58,20 @@ function BottomLines() {
       aria-hidden="true"
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="none"
-      className="pointer-events-none absolute bottom-0 left-0 z-0 h-[34%] w-[92%] md:h-[38%] md:w-[66%]"
+      className={`pointer-events-none absolute bottom-0 left-0 z-0 ${className}`}
     >
       <defs>
         <linearGradient
-          id="bottomLines"
+          id={id}
           gradientUnits="userSpaceOnUse"
           x1="0"
           y1="0"
           x2={W}
           y2="0"
         >
-          <stop offset="0" stopColor="#f6f6fb" />
-          <stop offset="0.5" stopColor="#c9c8d3" />
-          <stop offset="1" stopColor="#9d9ca5" />
+          <stop offset="0" stopColor={stops[0]} />
+          <stop offset="0.5" stopColor={stops[1]} />
+          <stop offset="1" stopColor={stops[2]} />
         </linearGradient>
       </defs>
 
@@ -74,7 +82,7 @@ function BottomLines() {
           <polygon
             key={i}
             points={`${x1},${y1 - w / 2} ${x2},${y2} ${x1},${y1 + w / 2}`}
-            fill="url(#bottomLines)"
+            fill={`url(#${id})`}
             opacity={0.75 + (i / (lines.length - 1)) * 0.25}
           />
         );
@@ -141,12 +149,21 @@ function AdventureHeading({
   );
 }
 
+const outlineFilter = (c: string) =>
+  `drop-shadow(1.5px 0 0 ${c}) drop-shadow(-1.5px 0 0 ${c}) drop-shadow(0 1.5px 0 ${c}) drop-shadow(0 -1.5px 0 ${c})`;
+
 function ShapeCluster({
   className,
   layout,
+  noodleSrc = "/images/shapes/noodle1.png",
+  fitaSrc = "/images/shapes/fita1.png",
+  outlines,
 }: {
   className: string;
   layout: "a" | "b";
+  noodleSrc?: string;
+  fitaSrc?: string;
+  outlines?: { dorito?: string; noodle?: string; fita?: string };
 }) {
   const spots: Record<
     "dorito" | "noodle" | "fita",
@@ -211,7 +228,10 @@ function ShapeCluster({
       }}
     >
       <div className="absolute anim-path-2" style={place(spots.dorito)}>
-        <div className="relative h-full w-full anim-wiggle-1 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
+        <div
+          className="relative h-full w-full anim-wiggle-1"
+          style={{ filter: outlineFilter(outlines?.dorito ?? "#7ab478") }}
+        >
           <Image
             src="/images/shapes/dorito.png"
             alt=""
@@ -223,9 +243,12 @@ function ShapeCluster({
       </div>
 
       <div className="absolute anim-path-3" style={place(spots.noodle)}>
-        <div className="relative h-full w-full anim-wiggle-2 [filter:drop-shadow(1.5px_0_0_#7ab478)_drop-shadow(-1.5px_0_0_#7ab478)_drop-shadow(0_1.5px_0_#7ab478)_drop-shadow(0_-1.5px_0_#7ab478)]">
+        <div
+          className="relative h-full w-full anim-wiggle-2"
+          style={{ filter: outlineFilter(outlines?.noodle ?? "#7ab478") }}
+        >
           <Image
-            src="/images/shapes/noodle2.png"
+            src={noodleSrc}
             alt=""
             fill
             sizes="80px"
@@ -235,9 +258,12 @@ function ShapeCluster({
       </div>
 
       <div className="absolute anim-path-1" style={place(spots.fita)}>
-        <div className="relative h-full w-full anim-wiggle-3 [filter:drop-shadow(1.5px_0_0_#fff0a3)_drop-shadow(-1.5px_0_0_#fff0a3)_drop-shadow(0_1.5px_0_#fff0a3)_drop-shadow(0_-1.5px_0_#fff0a3)]">
+        <div
+          className="relative h-full w-full anim-wiggle-3"
+          style={{ filter: outlineFilter(outlines?.fita ?? "#fff0a3") }}
+        >
           <Image
-            src="/images/shapes/fita1.png"
+            src={fitaSrc}
             alt=""
             fill
             sizes="80px"
@@ -312,42 +338,54 @@ export default function AboutPage() {
         .anim-sparkle { animation: sparkle-pulse 2s ease-in-out infinite; }
       `}</style>
 
-      {/* ===== FIXED BACKGROUND (does not move on scroll) ===== */}
+      {/* ===== FIXED BACKGROUND (shared by all sections, does not move on scroll) ===== */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-[#7ab478] to-[#d4eab3]"
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, #9bc86a 0%, #d7eaba 45%, #ffffff 90%)",
+        }}
       >
-        <BottomLines />
-
-        {/* Top left shape cluster */}
-        <ShapeCluster
-          layout="a"
-          className="left-[2%] top-[10%] sm:left-[4%] md:left-[5%] md:top-[18%]"
+        {/* Gray lines, bottom-left */}
+        <BottomLines
+          id="aboutLines"
+          stops={["#ececf5", "#c2c2c8", "#8d8d92"]}
+          className="h-[30%] w-[100%] md:h-[40%] md:w-[64%]"
         />
 
-        {/* Bottom right shape cluster */}
-        <ShapeCluster
-          layout="b"
-          className="right-[2%] bottom-[10%] sm:right-[4%] md:right-[10%] md:bottom-[14%]"
-        />
-
-        {/* Sparkle element - top right */}
+        {/* Big pixel sparkles */}
         <div
-          className="pointer-events-none absolute z-20 right-[5%] top-[12%] md:right-[12%] md:top-[15%]"
-          style={{ width: "clamp(48px, 8vw, 100px)", aspectRatio: "1/1" }}
+          className="absolute left-[2%] top-[10%] z-[5] md:top-[12%]"
+          style={{ width: "clamp(120px, 24vw, 320px)", aspectRatio: "1 / 1" }}
         >
-          <div className="absolute anim-path-1 w-full h-full">
-            <div className="relative w-full h-full anim-wiggle-2 anim-sparkle [filter:drop-shadow(1.5px_0_0_#fff)_drop-shadow(-1.5px_0_0_#fff)_drop-shadow(0_1.5px_0_#fff)_drop-shadow(0_-1.5px_0_#fff)]">
-              <Image
-                src="/images/sparkle.png"
-                alt=""
-                fill
-                sizes="100px"
-                className="object-contain"
-              />
-            </div>
+          <div className="relative h-full w-full anim-sparkle">
+            <Image
+              src="/images/sparkle.png"
+              alt=""
+              fill
+              sizes="320px"
+              className="object-contain [image-rendering:pixelated]"
+            />
           </div>
         </div>
+
+        {/* Bottom-left cluster */}
+        <ShapeCluster
+          layout="a"
+          noodleSrc="/images/shapes/noodle1.png"
+          outlines={{ dorito: "#ffd93b", noodle: "#7ab478", fita: "#ffd93b" }}
+          className="bottom-[2%] left-[2%] md:bottom-[3%]"
+        />
+
+        {/* Second cluster */}
+        <ShapeCluster
+          layout="b"
+          noodleSrc="/images/shapes/noodle1.png"
+          fitaSrc="/images/shapes/fita1.png"
+          outlines={{ dorito: "#7ab478", noodle: "#7ab478", fita: "#ffd93b" }}
+          className="hidden md:block md:bottom-[12%] md:left-[40%]"
+        />
       </div>
 
       <div className="fixed top-0 left-0 z-50 w-full">
@@ -357,89 +395,86 @@ export default function AboutPage() {
       {/* ============ SECTION 1: ABOUT ============ */}
       <section
         id="about"
-        className="relative z-10 flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden"
+        className="relative z-10 flex min-h-[100svh] w-full shrink-0 snap-start flex-col overflow-hidden pt-24 md:flex-row md:items-center md:pb-10"
       >
-        <div className="relative z-10 flex flex-1 items-center px-5 pb-10 pt-24 sm:px-8 sm:pb-12 md:px-10">
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-6 sm:gap-8 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:gap-10 lg:gap-16">
+        {/* Photo: ~3x bigger. Everything is driven by two CSS variables so it scales with the screen:
+            --w  = size of the (square) image box
+            --cx = where Ali's horizontal center should sit
+            The image has empty space under her, so the box is pushed down until she meets the bottom edge. */}
+        <div
+          className="pointer-events-none absolute z-10 aspect-square [--cx:50vw] [--w:190vw] md:[--cx:24vw] md:[--w:min(100vw,330svh)]"
+          style={{
+            width: "var(--w)",
+            left: "calc(var(--cx) - var(--w) * 0.322)",
+            bottom: "calc(var(--w) * -0.393)",
+          }}
+        >
+          <Image
+            src="/images/about.png"
+            alt="Aaliyah DeGuia"
+            fill
+            priority
+            sizes="(max-width: 768px) 190vw, 186vw"
+            className="object-contain [filter:drop-shadow(16px_10px_16px_rgba(0,0,0,0.35))]"
+          />
+        </div>
 
-            {/* Left Column: Image */}
-            <div className="relative flex w-full items-center justify-center md:justify-start">
-              {/* Increased max size again to 250% on desktop */}
-              <div className="relative aspect-square w-full max-w-[300px] drop-shadow-2xl sm:max-w-[400px] md:max-w-none md:w-[250%] md:-ml-[60%] lg:-ml-[70%]">
-                <Image
-                  src="/images/about.png"
-                  alt="Aaliyah DeGuia"
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, 90vw"
-                  className="object-contain md:scale-100 lg:scale-105"
-                />
-              </div>
-            </div>
+        {/* Text */}
+        <div
+          className="relative z-20 flex w-full min-w-0 flex-col items-center px-5 pb-[56vw] pt-6 text-center sm:px-8 md:ml-[50%] md:w-[44%] md:px-6 md:pb-0 md:pt-0"
+          style={{ containerType: "inline-size" }}
+        >
+          <div className="mb-3 w-full sm:mb-4 md:mb-5">
+            <AdventureHeading fontClass={sifonn.className} />
+          </div>
 
-            {/* Right Column: Text */}
-            <div
-              className="flex w-full min-w-0 flex-col items-center text-center md:items-start md:text-left"
-              style={{ containerType: "inline-size" }}
+          <div
+            className={`${plexMonoRegular.className} w-full space-y-3 text-justify text-[clamp(0.8rem,1.55vw,1.15rem)] leading-[1.55] text-[#111] sm:space-y-3.5 md:space-y-4`}
+          >
+            <p>
+              Hi everyone! I&apos;m Aaliyah DeGuia, but you guys can just call me Ali. I&apos;m 19
+              years old, a student Fiarcian Ambassador or FAM in short. I am your official virtual
+              tour guide for the University of Santo Fiarce - Manila Campus.
+            </p>
+
+            <p>
+              My goal is simple: I want to make sure you fall in love with this campus just like I
+              did, all the while giving you an inside scoop on what you actually need during your
+              stay here at USF.
+            </p>
+
+            <p>
+              If you want me to personally tour you or if you have any specific questions regarding
+              USF&apos;s systems, you can connect with me on Instagram!
+            </p>
+          </div>
+
+          {/* Instagram Button */}
+          <div className="mt-5 flex w-full justify-center sm:mt-6 md:mt-7">
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${plexMonoRegular.className} inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#feda75] via-[#fa7e1e] via-[#d62976] to-[#962fbf] px-6 py-2.5 text-[clamp(0.75rem,1.2vw,0.95rem)] font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 sm:px-8 sm:py-3`}
             >
-              <div className="mb-3 w-full sm:mb-4 md:mb-5">
-                <AdventureHeading fontClass={sifonn.className} />
-              </div>
-
-              <div
-                className={`${plexMonoRegular.className} w-full space-y-3 text-[clamp(0.8rem,1.55vw,1.05rem)] leading-[1.55] text-[#111] sm:space-y-3.5 md:space-y-4`}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <p>
-                  Hi everyone! I&apos;m Aaliyah DeGuia, but you guys can just call me Ali. I&apos;m 19
-                  years old, a student Fiarcian Ambassador or FAM in short. I am your official virtual
-                  tour guide for the University of Santo Fiarce - Manila Campus.
-                </p>
+                <rect x="2" y="2" width="20" height="20" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="18" cy="6" r="0.5" fill="currentColor" />
+              </svg>
 
-                <p>
-                  My goal is simple: I want to make sure you fall in love with this campus just like I
-                  did, all the while giving you an inside scoop on what you actually need during your
-                  stay here at USF.
-                </p>
-
-                <p>
-                  If you want me to personally tour you or if you have any specific questions regarding
-                  USF&apos;s systems, you can connect with me on Instagram!
-                </p>
-              </div>
-
-              {/* Instagram Button */}
-              <div className="mt-5 flex w-full justify-center sm:mt-6 md:mt-7 md:justify-start">
-                <a
-                  href={INSTAGRAM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${plexMonoRegular.className} inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#d62976] bg-gradient-to-r from-[#feda75] via-[#fa7e1e] via-[#d62976] to-[#962fbf] px-6 py-2.5 text-[clamp(0.75rem,1.2vw,0.95rem)] font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 sm:px-8 sm:py-3`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="2" y="2" width="20" height="20" rx="5" />
-                    <circle cx="12" cy="12" r="4" />
-                    <circle
-                      cx="18"
-                      cy="6"
-                      r="0.5"
-                      fill="currentColor"
-                    />
-                  </svg>
-
-                  Follow me on Instagram
-                </a>
-              </div>
-            </div>
+              Follow me on Instagram
+            </a>
           </div>
         </div>
       </section>
