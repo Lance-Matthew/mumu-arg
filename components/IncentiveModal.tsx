@@ -69,7 +69,7 @@ export default function IncentiveModal({
 
     if (allGreen) {
       onClose();
-      router.push("/ending/green");
+      router.push("/ending/penitensiya");
       return;
     }
 

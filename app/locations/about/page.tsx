@@ -720,7 +720,6 @@ export default function AboutPage() {
               <p
                 className={`${plexMono.className} mb-2 text-[clamp(0.62rem,1.2vw,0.8rem)] tracking-[0.35em] text-[#4b6b3a]`}
               >
-                A SHORT FILM BY TEAM MUMU
               </p>
               <div className="flex w-full justify-center">
                 <AdventureHeading

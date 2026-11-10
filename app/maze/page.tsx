@@ -652,9 +652,9 @@ export default function MazePage() {
     if (hit) {
       setEnding(hit);
       if (hit === "Ending 1") {
-        router.push("/ending/gray");
+        router.push("/ending/paraiso");
       } else {
-        router.push("/ending/red");
+        router.push("/ending/impyerno");
       }
     }
   };
