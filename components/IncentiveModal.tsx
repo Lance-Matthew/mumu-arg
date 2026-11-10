@@ -75,7 +75,7 @@ export default function IncentiveModal({
 
     if (allRed) {
       onClose();
-      router.push("/maze");
+      router.push("/ending/daanan");
       return;
     }
 
