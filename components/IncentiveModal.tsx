@@ -63,19 +63,10 @@ export default function IncentiveModal({
       (loc) => normalize(values[loc]) === normalize(GREEN_ANSWERS[loc])
     );
 
-    const allRed = LOCATIONS.every(
-      (loc) => normalize(values[loc]) === normalize(RED_ANSWERS[loc])
-    );
-
+    // The red path is handled by IncentiveModalCursed.
     if (allGreen) {
       onClose();
       router.push("/ending/penitensiya");
-      return;
-    }
-
-    if (allRed) {
-      onClose();
-      router.push("/ending/daanan");
       return;
     }
 

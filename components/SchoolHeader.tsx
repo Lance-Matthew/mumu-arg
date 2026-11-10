@@ -4,13 +4,35 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import IncentiveModal from "@/components/IncentiveModal";
+import IncentiveModalCursed from "@/components/IncentiveModalCursed";
 
 export default function SchoolHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const [isIncentiveOpen, setIsIncentiveOpen] = useState(false);
+  const [isCursedOpen, setIsCursedOpen] = useState(false);
 
   return (
     <>
+      <style>{`
+        @keyframes cursed-flicker {
+          0%, 92%, 100% { opacity: 1; }
+          93%           { opacity: 0.35; }
+          94%           { opacity: 1; }
+          96%           { opacity: 0.6; }
+          97%           { opacity: 1; }
+        }
+        @keyframes cursed-glow {
+          0%, 100% { text-shadow: 0 0 0 rgba(138,31,31,0); }
+          50%      { text-shadow: 0 0 4px rgba(138,31,31,0.25); }
+        }
+        .cursed-btn .cursed-real {
+          animation: cursed-flicker 6s steps(1, end) infinite;
+        }
+        .cursed-btn .cursed-whisper {
+          animation: cursed-glow 4s ease-in-out infinite;
+        }
+      `}</style>
+
       <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b-2 border-[#242218] bg-[#fff0a3] px-2 sm:px-4">
         <Link href="/" className="flex min-w-0 items-center gap-2.5 no-underline">
           {/* Seal kept at original h-10 to fit the h-16 container */}
@@ -53,6 +75,13 @@ export default function SchoolHeader() {
             <div className="absolute top-[calc(100%+8px)] right-0 w-48 border-2 border-[#242218] bg-[#fff0a3] shadow-[4px_4px_0_rgba(36,34,24,0.2)]">
               <nav className="flex flex-col py-2">
                 <Link 
+                  href="/" 
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2 font-mono text-sm font-bold text-[#211f17] hover:bg-[#ffe680] transition-colors"
+                >
+                  Home
+                </Link>
+                <Link 
                   href="/map" 
                   onClick={() => setIsOpen(false)}
                   className="px-4 py-2 font-mono text-sm font-bold text-[#211f17] hover:bg-[#ffe680] transition-colors"
@@ -69,6 +98,55 @@ export default function SchoolHeader() {
                 >
                   Incentive
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsCursedOpen(true);
+                  }}
+                  className="cursed-btn relative px-4 py-2 text-left font-mono text-sm font-bold text-[#211f17] hover:bg-[#ffe680] transition-colors"
+                >
+                  {/* Real label on top — occasionally flickers */}
+                  <span className="cursed-real relative z-30 inline-block">Incentive</span>
+
+                  {/* Chromatic-split ghosts — static, no jitter */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-[calc(50%+2px)] z-20 -translate-y-1/2 font-mono text-sm font-bold tracking-wide text-[#211f17]/35 select-none"
+                  >
+                    Incentive
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-[17px] top-[calc(50%+3px)] z-[19] -translate-y-1/2 font-mono text-sm font-bold tracking-wide text-[#8a1f1f]/35 select-none"
+                  >
+                    Incentive
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-[15px] top-[calc(50%+1px)] z-[18] -translate-y-1/2 font-mono text-sm font-bold tracking-wide text-[#1f3f8a]/35 select-none"
+                  >
+                    Incentive
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-[16px] top-[calc(50%+4px)] z-[17] -translate-y-1/2 font-mono text-sm font-bold tracking-wide text-[#5a1f8a]/25 select-none"
+                  >
+                    Incentive
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-[16px] top-[calc(50%+5px)] z-[16] -translate-y-1/2 font-mono text-[11px] font-bold tracking-[0.35em] text-[#211f17]/20 select-none"
+                  >
+                    INCENTIVE
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="cursed-whisper pointer-events-none absolute left-4 top-[calc(50%-6px)] z-[15] -translate-y-1/2 font-mono text-[9px] font-normal tracking-[0.5em] text-[#211f17]/15 select-none"
+                  >
+                    it sees you
+                  </span>
+                </button>
                 <Link 
                   href="/locations/about" 
                   onClick={() => setIsOpen(false)}
@@ -83,6 +161,7 @@ export default function SchoolHeader() {
       </header>
 
       <IncentiveModal open={isIncentiveOpen} onClose={() => setIsIncentiveOpen(false)} />
+      <IncentiveModalCursed open={isCursedOpen} onClose={() => setIsCursedOpen(false)} />
     </>
   );
 }

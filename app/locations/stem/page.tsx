@@ -23,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 const YELLOW = "#ffe793";
 
 const TOUR_VIDEO_SRC =
-  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/6dbcd3fd0ce7739dc3ad6ffb7033b728/manifest/video.m3u8";
+  "https://customer-eie2vf4vq58r59xg.cloudflarestream.com/03764177b363747f971af6564c446d51/manifest/video.m3u8";
 
 function CreamHeading({
   children,

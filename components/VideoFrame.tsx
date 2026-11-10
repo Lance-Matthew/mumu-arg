@@ -12,9 +12,17 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export default function VideoFrame({ src }: { src: string }) {
+type VideoFrameProps = {
+  src: string;
+  /** Optional sidecar caption tracks (.vtt). HLS-embedded captions are auto-detected. */
+  captions?: { src: string; srcLang: string; label: string; default?: boolean }[];
+};
+
+export default function VideoFrame({ src, captions }: VideoFrameProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoFrameRef = useRef<HTMLDivElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -22,6 +30,10 @@ export default function VideoFrame({ src }: { src: string }) {
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [buffering, setBuffering] = useState(false);
+  const [captionsOn, setCaptionsOn] = useState(false);
+  const [hasCaptions, setHasCaptions] = useState(
+    !!captions && captions.length > 0
+  );
 
   // ── HLS / native source attach ────────────────────────────
   useEffect(() => {
@@ -38,14 +50,34 @@ export default function VideoFrame({ src }: { src: string }) {
 
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
-    } else if (Hls.isSupported()) {
+      const onLoaded = () => {
+        if (video.textTracks.length > 0) setHasCaptions(true);
+      };
+      video.addEventListener("loadedmetadata", onLoaded);
+      return () => video.removeEventListener("loadedmetadata", onLoaded);
+    }
+
+    if (Hls.isSupported()) {
       hls = new Hls({ enableWorker: true });
+      hlsRef.current = hls;
       hls.loadSource(src);
       hls.attachMedia(video);
+
+      const checkTracks = () => {
+        if (hls && hls.subtitleTracks.length > 0) {
+          setHasCaptions(true);
+        }
+      };
+
+      hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, checkTracks);
+      hls.on(Hls.Events.MANIFEST_PARSED, checkTracks);
     }
 
     return () => {
-      if (hls) hls.destroy();
+      if (hls) {
+        hls.destroy();
+        hlsRef.current = null;
+      }
     };
   }, [src]);
 
@@ -59,7 +91,6 @@ export default function VideoFrame({ src }: { src: string }) {
     const onCanPlay = () => setBuffering(false);
     const onSeeking = () => setBuffering(true);
     const onSeeked = () => {
-      // Only clear if we have enough data; otherwise wait for 'playing'
       if (v.readyState >= 3) setBuffering(false);
     };
 
@@ -78,7 +109,6 @@ export default function VideoFrame({ src }: { src: string }) {
     };
   }, []);
 
-  // Keep fullscreen state in sync
   useEffect(() => {
     const onChange = () => {
       setIsFullscreen(document.fullscreenElement === videoFrameRef.current);
@@ -87,7 +117,6 @@ export default function VideoFrame({ src }: { src: string }) {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
-  // Initial volume
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -154,6 +183,27 @@ export default function VideoFrame({ src }: { src: string }) {
     if (!v) return;
     v.muted = !v.muted;
     setVolume(v.muted ? 0 : v.volume);
+  };
+
+  const toggleCaptions = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    const next = !captionsOn;
+
+    const hls = hlsRef.current;
+    if (hls && hls.subtitleTracks.length > 0) {
+      hls.subtitleDisplay = next;
+      if (next && hls.subtitleTrack === -1) {
+        hls.subtitleTrack = 0;
+      }
+    }
+
+    const tracks = v.textTracks;
+    for (let i = 0; i < tracks.length; i++) {
+      tracks[i].mode = next ? "showing" : "hidden";
+    }
+
+    setCaptionsOn(next);
   };
 
   return (
@@ -233,6 +283,26 @@ export default function VideoFrame({ src }: { src: string }) {
         .buffer-spinner {
           animation: spin 0.8s linear infinite;
         }
+
+        [data-video-frame] video::cue {
+          background: rgba(31, 35, 41, 0.85);
+          color: ${YELLOW};
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: clamp(14px, 1.5vw, 20px);
+          line-height: 1.35;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        }
+
+        [data-video-frame] .hls-subtitle {
+          background: rgba(31, 35, 41, 0.85);
+          color: ${YELLOW};
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: clamp(14px, 1.5vw, 20px);
+          line-height: 1.35;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+          padding: 0.15em 0.4em;
+          border-radius: 3px;
+        }
       `}</style>
 
       <div className="mx-auto w-full max-w-5xl rounded-2xl border-[6px] border-[#1f2329] bg-[#34414d] p-4 shadow-[0_8px_12px_rgba(0,0,0,0.25)]">
@@ -259,9 +329,20 @@ export default function VideoFrame({ src }: { src: string }) {
               }
             }}
             onTimeUpdate={handleTimeUpdate}
-          />
+            crossOrigin="anonymous"
+          >
+            {captions?.map((c) => (
+              <track
+                key={c.srcLang + c.label}
+                kind="captions"
+                src={c.src}
+                srcLang={c.srcLang}
+                label={c.label}
+                default={c.default}
+              />
+            ))}
+          </video>
 
-          {/* Buffering overlay — above the video, below the controls */}
           {buffering && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/30">
               <div
@@ -271,7 +352,6 @@ export default function VideoFrame({ src }: { src: string }) {
             </div>
           )}
 
-          {/* Play overlay */}
           {!playing && !buffering && (
             <button
               type="button"
@@ -295,9 +375,9 @@ export default function VideoFrame({ src }: { src: string }) {
             </button>
           )}
 
-          {/* Pause button */}
-          {playing && (
-            <div className="absolute top-3 right-14 z-20">
+          {/* Top-right: pause + fullscreen only now */}
+          <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+            {playing && (
               <button
                 type="button"
                 onClick={togglePlay}
@@ -309,30 +389,29 @@ export default function VideoFrame({ src }: { src: string }) {
                   <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
                 </svg>
               </button>
-            </div>
-          )}
-
-          {/* Fullscreen */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              void toggleFullscreen();
-            }}
-            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-            className="absolute top-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
-            style={{ background: YELLOW }}
-          >
-            {isFullscreen ? (
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
-                <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
-                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-              </svg>
             )}
-          </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                void toggleFullscreen();
+              }}
+              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+              className="flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#1f2329] opacity-80 shadow-[3px_4px_0_rgba(0,0,0,0.4)] transition-opacity hover:opacity-100"
+              style={{ background: YELLOW }}
+            >
+              {isFullscreen ? (
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
+                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#1f2329" aria-hidden="true">
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                </svg>
+              )}
+            </button>
+          </div>
 
           {/* Bottom controls */}
           <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6">
@@ -353,6 +432,24 @@ export default function VideoFrame({ src }: { src: string }) {
               </span>
 
               <div className="flex items-center gap-2">
+                {/* CC toggle — right next to the volume dial */}
+                {hasCaptions && (
+                  <button
+                    type="button"
+                    onClick={toggleCaptions}
+                    aria-label={captionsOn ? "Turn off captions" : "Turn on captions"}
+                    aria-pressed={captionsOn}
+                    className="flex h-6 w-8 items-center justify-center rounded-[3px] border-2 transition-colors"
+                    style={{
+                      borderColor: captionsOn ? YELLOW : "rgba(255,255,255,0.7)",
+                      background: captionsOn ? YELLOW : "transparent",
+                      color: captionsOn ? "#1f2329" : "#ffffff",
+                    }}
+                  >
+                    <span className="font-mono text-[10px] font-black leading-none">CC</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={toggleMute}

@@ -98,12 +98,17 @@ const FRAMES = [
   ASSETS.happy1, ASSETS.happy2, ASSETS.happy3,
 ];
 
-// Shared bottom-fade mask used by both the desktop and mobile Aaliyah stacks.
-// Multi-stop so the alpha eases out instead of a visible hard cut.
 const AALIYAH_FADE_DESKTOP =
   "linear-gradient(to bottom, black 0%, black 72%, rgba(0,0,0,0.85) 82%, rgba(0,0,0,0.4) 92%, transparent 100%)";
 const AALIYAH_FADE_MOBILE =
   "linear-gradient(to bottom, black 0%, black 70%, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.4) 91%, transparent 100%)";
+
+// ── Transcript copy ──────────────────────────────────────────
+const TRANSCRIPT_TUTORIAL = `Dito na tayo sa University of Santo Fiarce - Manila Campus! So as you can see, we have five main areas of the campus.
+
+Right now, nasa Tutorial Mode pa tayo. Let me, your amazing guide, direct you before you explore on your own. I-click mo muna yung "Library."`;
+
+const TRANSCRIPT_CAMPUS_MAP = `Ayan! Welcome back! So now, feel free to explore anywhere you wanna go.`;
 
 type Phase = "intro" | "scary" | "postScary" | "happy" | "empty" | "video";
 
@@ -154,6 +159,51 @@ function FiarceOverlay() {
   );
 }
 
+/** Transcript popup styled after the speech-bubble artwork. Just the text. */
+function TranscriptPopup({
+  text,
+  onClose,
+}: {
+  text: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="relative rounded-[1.5rem] border-[4px] border-[#242218] bg-[#fff4c2] px-6 py-6 shadow-[8px_8px_0_rgba(36,34,24,0.45)] md:px-8 md:py-7">
+          {/* Close button — top-right, no header/title */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close transcript"
+            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center border-2 border-[#242218] bg-[#c9c9c9] font-mono text-sm font-bold text-[#211f17] shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]"
+          >
+            ✕
+          </button>
+
+          <div className={`${plexMono.className} space-y-4 pr-8 text-sm leading-relaxed text-[#211f17] md:text-base`}>
+            {text.split("\n\n").map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </div>
+
+        {/* Bubble tail */}
+        <div
+          aria-hidden="true"
+          className="absolute left-10 -bottom-3 h-6 w-6 rotate-45 border-b-[4px] border-r-[4px] border-[#242218] bg-[#fff4c2]"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function MapPage() {
   const router = useRouter();
   const isDesktop = useIsDesktop();
@@ -170,6 +220,7 @@ export default function MapPage() {
   const [runId, setRunId] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [showHoverPulse, setShowHoverPulse] = useState(false);
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
 
   const isHappyFinished = phase === "happy" && (step === HAPPY.length - 1 || happyPlayed);
 
@@ -183,7 +234,7 @@ export default function MapPage() {
   useEffect(() => {
     setHydrated(true);
     handheldSoundRef.current = new Audio(ASSETS.handheldSound);
-    handheldSoundRef.current.volume = 0.3; // 60% volume
+    handheldSoundRef.current.volume = 0.3;
   }, []);
 
   useEffect(() => {
@@ -300,6 +351,27 @@ export default function MapPage() {
     };
   }, []);
 
+  // Close the transcript on Escape
+  useEffect(() => {
+    if (!transcriptOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTranscriptOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [transcriptOpen]);
+
+  // ── Everything added is disabled during the scary sequence ──
+  const inScarySequence =
+    phase === "scary" || phase === "empty" || phase === "video";
+
+  // Force-close the transcript if the scary sequence begins while it's open.
+  useEffect(() => {
+    if (inScarySequence && transcriptOpen) {
+      setTranscriptOpen(false);
+    }
+  }, [inScarySequence, transcriptOpen]);
+
   const handleStartClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!hasStartedGame) writeProgress({ hasStartedGame: true });
@@ -393,6 +465,18 @@ export default function MapPage() {
 
   const autoStartVolume = needsTap ? 3 : undefined;
 
+  const transcriptText = showCampusMapText
+    ? TRANSCRIPT_CAMPUS_MAP
+    : TRANSCRIPT_TUTORIAL;
+
+  // Bubbles are interactive only when nothing scary is happening and not on the start screen.
+  const bubblesEnabled = !inScarySequence && !needsTap;
+
+  const openTranscript = () => {
+    if (!bubblesEnabled) return;
+    setTranscriptOpen(true);
+  };
+
   const mapOverlay = needsTap ? (
     <button
       type="button"
@@ -470,6 +554,24 @@ export default function MapPage() {
           100% { opacity: 1; }
         }
         .glitch { animation: scary-flicker ${GLITCH_MS}ms steps(1, end) both; }
+
+        /* Clickable speech bubbles */
+        .bubble-click {
+          cursor: pointer;
+          pointer-events: auto;
+          transition: transform 0.15s ease-out, filter 0.15s ease-out;
+        }
+        .bubble-click:hover {
+          filter: brightness(1.05) drop-shadow(0 0 4px rgba(255,255,255,0.6));
+        }
+        .bubble-click:active {
+          transform: scale(0.96);
+        }
+        .bubble-click:focus-visible {
+          outline: 3px solid #242218;
+          outline-offset: 3px;
+          border-radius: 6px;
+        }
 
         @media (prefers-reduced-motion: reduce) {
           .bubble-float-a, .bubble-float-b { animation: none; }
@@ -588,12 +690,27 @@ export default function MapPage() {
             })}
           </div>
 
-          <div className={`${bubbleClassA} pointer-events-none absolute z-30`} style={{ left: "1.6vw", top: "30.9vw", width: "10.9vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}>
-            <Image src="/images/map/message.png" alt="Speech bubble" width={0} height={0} sizes="7vw" className="block h-auto w-full" />
-          </div>
-          <div className={`${bubbleClassB} pointer-events-none absolute z-30`} style={{ left: "2.8vw", top: "15.7vw", width: "15.63vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}>
-            <Image src="/images/map/message.png" alt="Speech bubble" width={0} height={0} sizes="7vw" className="block h-auto w-full scale-x-[-1]" />
-          </div>
+          {/* Speech bubbles — clickable to open transcript (disabled during scary sequence) */}
+          <button
+            type="button"
+            aria-label="Open transcript"
+            aria-disabled={!bubblesEnabled}
+            onClick={openTranscript}
+            className={`${bubbleClassA} ${bubblesEnabled ? "bubble-click" : "pointer-events-none"} absolute z-30 bg-transparent border-0 p-0`}
+            style={{ left: "1.6vw", top: "30.9vw", width: "10.9vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}
+          >
+            <Image src="/images/map/message.png" alt="" width={0} height={0} sizes="7vw" className="block h-auto w-full" />
+          </button>
+          <button
+            type="button"
+            aria-label="Open transcript"
+            aria-disabled={!bubblesEnabled}
+            onClick={openTranscript}
+            className={`${bubbleClassB} ${bubblesEnabled ? "bubble-click" : "pointer-events-none"} absolute z-30 bg-transparent border-0 p-0`}
+            style={{ left: "2.8vw", top: "15.7vw", width: "15.63vw", opacity: needsTap ? 0 : 1, transition: "opacity 0.5s ease-in-out" }}
+          >
+            <Image src="/images/map/message.png" alt="" width={0} height={0} sizes="7vw" className="block h-auto w-full scale-x-[-1]" />
+          </button>
         </div>
       )}
 
@@ -635,8 +752,8 @@ export default function MapPage() {
 
           <div
             className={`relative w-full max-w-[18rem] pointer-events-none mt-4 z-40 ${current?.glitch ? "glitch" : ""}`}
-            style={{ 
-              opacity: hideAaliyah ? 0 : 1, 
+            style={{
+              opacity: hideAaliyah ? 0 : 1,
               transition: "opacity 0.7s ease-in-out",
               WebkitMaskImage: AALIYAH_FADE_MOBILE,
               maskImage: AALIYAH_FADE_MOBILE,
@@ -693,7 +810,35 @@ export default function MapPage() {
               overlay={mapOverlay}
             />
           </div>
+
+          {/* Mobile speech bubble — same transcript, disabled during scary sequence */}
+          {!needsTap && (
+            <button
+              type="button"
+              aria-label="Open transcript"
+              aria-disabled={!bubblesEnabled}
+              onClick={openTranscript}
+              className={`${bubblesEnabled ? "bubble-click" : "pointer-events-none"} absolute right-4 top-24 z-40 w-20 bg-transparent border-0 p-0`}
+            >
+              <Image src="/images/map/message.png" alt="" width={0} height={0} sizes="80px" className="block h-auto w-full scale-x-[-1]" />
+            </button>
+          )}
         </div>
+      )}
+
+      {/* Bottom-left hint — hidden during scary sequence and on the start screen */}
+      {!needsTap && !inScarySequence && (
+        <div className="pointer-events-none fixed bottom-3 left-3 z-[140] sm:bottom-4 sm:left-4">
+          <span
+            className={`${plexMono.className} inline-block rounded-md border-2 border-[#242218] bg-[#fff4c2]/90 px-2.5 py-1 text-[10px] font-bold text-[#211f17] shadow-[2px_3px_0_rgba(36,34,24,0.35)] sm:text-xs`}
+          >
+            Click a speech bubble for Ali&apos;s Transcript
+          </span>
+        </div>
+      )}
+
+      {transcriptOpen && !inScarySequence && (
+        <TranscriptPopup text={transcriptText} onClose={() => setTranscriptOpen(false)} />
       )}
 
       {phase === "empty" && (
