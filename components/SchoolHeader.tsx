@@ -32,7 +32,7 @@ export default function SchoolHeader() {
         <div className="relative flex shrink-0 items-center gap-3 sm:gap-4">
           {/* Subtext increased 0.5x: text-sm -> text-base, sm:text-base -> sm:text-lg */}
           <span className="hidden font-mono text-base font-black text-[#211f17] sm:block sm:text-lg">
-            #USFRetroTakeOver
+            #USFRetroTakeover
           </span>
 
           {/* Hamburger Button - Now Clickable */}
@@ -59,13 +59,6 @@ export default function SchoolHeader() {
                 >
                   Campus Map
                 </Link>
-                <Link 
-                  href="/locations/about" 
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 font-mono text-sm font-bold text-[#211f17] hover:bg-[#ffe680] transition-colors"
-                >
-                  About Me
-                </Link>
                 <button
                   type="button"
                   onClick={() => {
@@ -76,6 +69,13 @@ export default function SchoolHeader() {
                 >
                   Incentive
                 </button>
+                <Link 
+                  href="/locations/about" 
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2 font-mono text-sm font-bold text-[#211f17] hover:bg-[#ffe680] transition-colors"
+                >
+                  About
+                </Link>
               </nav>
             </div>
           )}
