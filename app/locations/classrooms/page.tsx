@@ -128,6 +128,7 @@ const GUIDELINES: {
   },
   {
     label: "Waste sorting",
+    labelParts: ["Waste sorti", { clue: "N", tail: "g" }],
     parts: [
       "Trash has to be sorted into different categories for easier disposal.",
     ],
