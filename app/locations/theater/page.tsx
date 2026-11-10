@@ -377,19 +377,7 @@ export default function TheaterPage() {
                     {active.title}
                   </p>
 
-                  {/* Overlapping scrambled letters for the cursed title */}
-                  {active.cursed && (
-                    <span
-                      className="absolute inset-0 z-0 font-mono text-black opacity-30 mix-blend-multiply select-none pointer-events-none break-all"
-                      style={{
-                        transform: "translate(3px, -4px) scale(1.05)",
-                        filter: "blur(0.5px)",
-                      }}
-                      aria-hidden="true"
-                    >
-                      z x i t e  L a d d a t
-                    </span>
-                  )}
+                  
                 </div>
 
                 {active.blurb && (
