@@ -183,7 +183,7 @@ export default function MapPage() {
   useEffect(() => {
     setHydrated(true);
     handheldSoundRef.current = new Audio(ASSETS.handheldSound);
-    handheldSoundRef.current.volume = 0.6; // 60% volume
+    handheldSoundRef.current.volume = 0.3; // 60% volume
   }, []);
 
   useEffect(() => {
