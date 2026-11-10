@@ -256,7 +256,7 @@ export default function SportsCenterPage() {
               Using a 6-col grid so the bottom pair sits in the gaps of the top row. */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-6 md:gap-6">
             <CourseCard title="PEDNC" tilt="-1.2deg" pinColor={PIN_COLORS[0]} className="md:col-span-2">
-              Dance - Stu<b>D</b>ents will learn the basics of dance to improve their coordination and master
+              Dance - Stude<b>N</b>ts will learn the basics of dance to improve their coordination and master
               the foundatio<b>N</b>al rhythm, choreography, and movement.
             </CourseCard>
             <CourseCard title="PEMMA" tilt="1.2deg" pinColor={PIN_COLORS[1]} className="md:col-span-2">
@@ -265,7 +265,7 @@ export default function SportsCenterPage() {
             </CourseCard>
             <CourseCard title="PEPKL" tilt="-1.2deg" pinColor={PIN_COLORS[2]} className="md:col-span-2">
               Pickleball - Students wil<b>L</b> be training in a low-impact racket sport, designed to improve
-              reflexes, ha<b>N</b>d-eye coordination, and strategy.
+              reflexes, ha<b>N</b>d-eye coordination, and strate<b>G</b>y.
             </CourseCard>
             <CourseCard
               title="PETRK"
