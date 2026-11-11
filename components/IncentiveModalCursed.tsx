@@ -87,28 +87,28 @@ export default function IncentiveModalCursed({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md border-[4px] border-[#242218] bg-[#fff0a3] shadow-[8px_8px_0_rgba(36,34,24,0.35)]"
+        className="relative w-full max-w-md border-[4px] border-black bg-[#0a0a0a] shadow-[8px_8px_0_rgba(0,0,0,0.6)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header bar */}
-        <div className="flex items-center justify-between border-b-[3px] border-[#242218] bg-[#ffe680] px-4 py-2">
-          <h2 className="font-mono text-lg font-black text-[#211f17]">Incentive</h2>
+        {/* Header bar — gray strip */}
+        <div className="flex items-center justify-between border-b-[3px] border-black bg-[#2b2b2b] px-4 py-2">
+          <h2 className="font-mono text-lg font-black text-white">Incentive</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-7 w-7 items-center justify-center border-2 border-[#242218] bg-[#c9c9c9] font-mono text-sm font-bold text-[#211f17] shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]"
+            className="flex h-7 w-7 items-center justify-center border-2 border-black bg-[#4a4a4a] font-mono text-sm font-bold text-white shadow-[inset_-2px_-2px_0_#1f1f1f,inset_2px_2px_0_#6b6b6b] transition-colors hover:bg-[#5a5a5a] active:shadow-[inset_2px_2px_0_#1f1f1f,inset_-2px_-2px_0_#6b6b6b]"
           >
             ✕
           </button>
         </div>
 
-        {/* Instruction line — cursed variant */}
-        <p className="border-b-[3px] border-[#242218] bg-[#fff7cc] px-5 py-3 text-center font-mono text-sm font-bold text-[#211f17]">
+        {/* Instruction line — darker gray strip */}
+        <p className="border-b-[3px] border-black bg-[#1f1f1f] px-5 py-3 text-center font-mono text-sm font-bold text-white">
           Tulungan niyo ako, ano ba yung mga ito?
         </p>
 
@@ -121,16 +121,16 @@ export default function IncentiveModalCursed({
                 ? "border-[#22c55e]"
                 : state === "wrong"
                   ? "border-[#ef4444]"
-                  : "border-[#242218]";
+                  : "border-[#4a4a4a]";
 
             return (
               <label key={loc} className="flex flex-col gap-1">
-                <span className="font-mono text-sm font-bold text-[#211f17]">{loc}</span>
+                <span className="font-mono text-sm font-bold text-white">{loc}</span>
                 <input
                   type="text"
                   value={values[loc]}
                   onChange={(e) => handleChange(loc, e.target.value)}
-                  className={`border-2 bg-white px-3 py-1.5 font-mono text-sm text-[#211f17] outline-none focus:bg-[#fffbe6] ${borderClass}`}
+                  className={`border-2 bg-[#1a1a1a] px-3 py-1.5 font-mono text-sm text-white outline-none focus:bg-[#232323] ${borderClass}`}
                 />
               </label>
             );
@@ -138,7 +138,7 @@ export default function IncentiveModalCursed({
 
           <button
             type="submit"
-            className="mt-2 self-center border-[3px] border-black bg-[#c9c9c9] px-8 py-1.5 font-mono text-sm font-normal text-black shadow-[inset_-2px_-2px_0_#6b6b6b,inset_2px_2px_0_#fff] transition-colors hover:bg-[#d6d6d6] active:shadow-[inset_2px_2px_0_#6b6b6b,inset_-2px_-2px_0_#fff]"
+            className="mt-2 self-center border-[3px] border-black bg-[#4a4a4a] px-8 py-1.5 font-mono text-sm font-normal text-white shadow-[inset_-2px_-2px_0_#1f1f1f,inset_2px_2px_0_#6b6b6b] transition-colors hover:bg-[#5a5a5a] active:shadow-[inset_2px_2px_0_#1f1f1f,inset_-2px_-2px_0_#6b6b6b]"
           >
             Submit
           </button>
