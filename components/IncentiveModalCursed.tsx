@@ -5,14 +5,6 @@ import { useRouter } from "next/navigation";
 
 const LOCATIONS = ["Library", "Sports Center", "Theater", "Labs", "Classrooms"] as const;
 
-const GREEN_ANSWERS: Record<string, string> = {
-  Library: "Kaalaman",
-  "Sports Center": "Katatagan",
-  Theater: "Karunungan",
-  Labs: "Malikhain",
-  Classrooms: "Biyaya",
-};
-
 const RED_ANSWERS: Record<string, string> = {
   Library: "Aswang",
   "Sports Center": "Manananggal",
@@ -51,7 +43,7 @@ export default function IncentiveModalCursed({
 
   const isFieldCorrect = (loc: string) => {
     const v = normalize(values[loc]);
-    return v === normalize(GREEN_ANSWERS[loc]) || v === normalize(RED_ANSWERS[loc]);
+    return v === normalize(RED_ANSWERS[loc]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -61,7 +53,6 @@ export default function IncentiveModalCursed({
       (loc) => normalize(values[loc]) === normalize(RED_ANSWERS[loc])
     );
 
-    // The green path is handled by IncentiveModal.
     if (allRed) {
       onClose();
       router.push("/ending/daanan");

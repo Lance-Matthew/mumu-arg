@@ -13,14 +13,6 @@ const GREEN_ANSWERS: Record<string, string> = {
   Classrooms: "Biyaya",
 };
 
-const RED_ANSWERS: Record<string, string> = {
-  Library: "Aswang",
-  "Sports Center": "Manananggal",
-  Theater: "White Lady",
-  Labs: "Multo",
-  Classrooms: "Tiyanak",
-};
-
 type FieldState = "idle" | "correct" | "wrong";
 
 // Normalize: lowercase, strip everything that isn't a letter.
@@ -53,7 +45,7 @@ export default function IncentiveModal({
 
   const isFieldCorrect = (loc: string) => {
     const v = normalize(values[loc]);
-    return v === normalize(GREEN_ANSWERS[loc]) || v === normalize(RED_ANSWERS[loc]);
+    return v === normalize(GREEN_ANSWERS[loc]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,7 +55,6 @@ export default function IncentiveModal({
       (loc) => normalize(values[loc]) === normalize(GREEN_ANSWERS[loc])
     );
 
-    // The red path is handled by IncentiveModalCursed.
     if (allGreen) {
       onClose();
       router.push("/ending/penitensiya");
