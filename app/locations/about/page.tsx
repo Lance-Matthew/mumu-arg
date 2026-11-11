@@ -818,7 +818,7 @@ export default function AboutPage() {
               <p
                 className={`${plexMono.className} text-[clamp(0.62rem,1.1vw,0.75rem)] tracking-[0.3em] text-[#7a8a72]`}
               >
-                TEAM MUMU · 2025
+                © 2026 Anna Denise S. Abad Santos, John Clarence F. Abcede, and Seth Deandre L. Oranga
               </p>
               <p
                 className={`${plexMonoRegular.className} text-center text-[clamp(0.62rem,1.1vw,0.75rem)] text-[#7a8a72]`}
