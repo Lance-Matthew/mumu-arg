@@ -109,7 +109,7 @@ export default function IncentiveModalCursed({
 
         {/* Instruction line — cursed variant */}
         <p className="border-b-[3px] border-[#242218] bg-[#fff7cc] px-5 py-3 text-center font-mono text-sm font-bold text-[#211f17]">
-          TULUNGAN NIYO AKO
+          Tulungan niyo ako, ano ba yung mga ito?
         </p>
 
         {/* Form */}
