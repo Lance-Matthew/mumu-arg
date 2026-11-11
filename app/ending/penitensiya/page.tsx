@@ -35,7 +35,7 @@ export default function GreenEndingPage() {
         href="/"
         className="mt-10 inline-block border-2 border-[#8cc152] bg-[#8cc152] px-8 py-2 font-mono text-sm font-bold tracking-wide text-black transition-colors hover:bg-[#a6cf6e] hover:border-[#a6cf6e] active:translate-y-[1px]"
       >
-        Back to Home
+        Home
       </Link>
 
       {/* Certificate popup — matches the video frame width, auto-hides after 5s */}

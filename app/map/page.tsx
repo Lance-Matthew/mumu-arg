@@ -212,7 +212,6 @@ export default function MapPage() {
   const visited = progress.libraryVisited;
   const happyPlayed = progress.happySequencePlayed;
   const hasStartedGame = progress.hasStartedGame;
-  const titleTransitioned = progress.titleTransitioned;
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [step, setStep] = useState(0);
@@ -297,11 +296,12 @@ export default function MapPage() {
     }
   }, [phase, started, step]);
 
+  // Still writes the persisted flag for any other consumer of titleTransitioned.
   useEffect(() => {
-    if (isHappyFinished && !titleTransitioned) {
+    if (isHappyFinished && !progress.titleTransitioned) {
       writeProgress({ titleTransitioned: true });
     }
-  }, [isHappyFinished, titleTransitioned]);
+  }, [isHappyFinished, progress.titleTransitioned]);
 
   useEffect(() => {
     if (isHappyFinished) {
@@ -454,7 +454,9 @@ export default function MapPage() {
   const bubbleClassA = bubblesFrozen ? "bubble-frozen-a" : "bubble-float-a";
   const bubbleClassB = bubblesFrozen ? "bubble-frozen-b" : "bubble-float-b";
 
-  const showCampusMapText = !!titleTransitioned;
+  // Title crossfade AND transcript both switch the moment the happy sequence starts.
+  const showCampusMapText = phase === "happy";
+
   const needsTap = !visited && !hasStartedGame;
   const hideAaliyah = needsTap || phase === "postScary";
 

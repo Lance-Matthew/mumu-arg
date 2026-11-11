@@ -466,6 +466,7 @@ export default function Home() {
                     Explore the website in full and answer the form found at the navigation tab (<InlineHamburger />) to earn your incentive.
                   </p>
                   <p>Screenshot your certificate and upload it in the assignments tab under your HMRM1 course.</p>
+                  <p>(Best viewed on a Laptop or Computer)</p>
                 </div>
 
                 <div className="mt-8 flex justify-center lg:justify-start md:mt-10">

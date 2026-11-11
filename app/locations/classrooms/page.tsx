@@ -73,10 +73,10 @@ const ShapeAnimations = () => (
     .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
     .anim-pulse-5 { animation: bounce2beat 5s ease-in-out infinite; will-change: transform; }
 
-    /* Clue letters — white text, cream underline (chalk color) */
+    /* Clue letters — bold white text, cream underline (chalk color) */
     .clue {
       color: inherit;
-      font-weight: inherit;
+      font-weight: 700;
       text-decoration: underline;
       text-decoration-color: #ffeaa6;
       text-decoration-thickness: 2px;

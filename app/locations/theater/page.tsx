@@ -74,6 +74,33 @@ const ShapeAnimations = () => (
     .anim-path-2 { animation: path-triangle 5s linear infinite; }
     .anim-path-3 { animation: path-diamond 4.5s linear infinite; }
     .anim-pulse-5 { animation: bounce2beat 5s ease-in-out infinite; will-change: transform; }
+
+    /* Noisy / ghosted text effect for the cursed title */
+    .noisy-title {
+      position: relative;
+      font-weight: 700;
+      z-index: 1;
+    }
+
+    .noisy-title::before {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: rgba(0, 0, 0, 0.25); /* Base faint color */
+      transform: translate(2px, -2px);
+      z-index: -1;
+      pointer-events: none;
+      text-shadow: 
+        0px 0px 1px rgba(0, 0, 0, 0.4), /* Static noise */
+        2px -2px 0 rgba(0, 0, 0, 0.2),
+        5px -5px 0 rgba(0, 0, 0, 0.15),
+        9px -9px 0 rgba(0, 0, 0, 0.1),
+        14px -14px 0 rgba(0, 0, 0, 0.05),
+        -2px -2px 0 rgba(255, 127, 127, 0.2); /* Tiny hint of red/blue glitch */
+    }
   `}</style>
 );
 
@@ -372,12 +399,13 @@ export default function TheaterPage() {
               <div className="flex flex-col justify-center text-center md:text-left relative">
                 <div className="relative inline-block mx-auto md:mx-0">
                   <p
-                    className={`${plexMono.className} text-black text-xl md:text-2xl relative z-10`}
+                    data-text={active.title}
+                    className={`${plexMono.className} text-black text-xl md:text-2xl relative z-10 ${
+                      active.cursed ? "noisy-title" : ""
+                    }`}
                   >
                     {active.title}
                   </p>
-
-                  
                 </div>
 
                 {active.blurb && (
